@@ -1,0 +1,152 @@
+﻿@page "/Auth/Login"
+
+@using Entities.Dto
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+
+
+@inject NavigationManager _NavigationManager
+@inject ProtectedLocalStorage protectedLocalStorage
+@inject AuthService authService
+
+<PageTitle>Giriş Ekranı</PageTitle>
+
+<MudItem class="login-background">
+    <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center" Style="height: 100vh;">
+        <div class="d-flex flex-column mud-width-full">
+            <MudPaper Elevation="25" Class="pa-8 paper-round" Width="100%" MaxWidth="500px">
+                <MudGrid>
+                    <MudItem xs=12>
+                        <MudText Typo="Typo.h5" Align=Align.Center>
+                            MUHASEBE OTOMASYONU
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs=12>
+                        <MudText Typo="Typo.h6" GutterBottom="true">Kullanıcı Girişi</MudText>
+                        <EditForm Model=@userLogin>
+                            <DataAnnotationsValidator />
+                            <MudTextField Label="E-Posta"
+                                          @bind-Value="userLogin.Email"
+                                          For="()=>userLogin.Email"
+                                          Variant="Variant.Outlined"
+                                          Margin=Margin.Dense
+                                          Class="my-6 mt-2" />
+
+                            <MudTextField Label="Parola"
+                                          @bind-Value="userLogin.Password"
+                                          For="()=>userLogin.Password"
+                                          Variant="Variant.Outlined"
+                                          Margin=Margin.Dense
+                                          InputType="@PasswordInput"
+                                          Adornment="Adornment.End"
+                                          AdornmentIcon="@PasswordInputIcon"
+                                          OnAdornmentClick="TogglePasswordVisibility" />
+
+                            @if (string.IsNullOrEmpty(errorMessage) == false)
+                            {
+                                <div Class="d-flex justify-space-between align-center">
+                                    <MudAlert Dense="true" Severity="Severity.Error" Class="mt-2 mud-width-full" Style="max-width:500px;" Elevation="25">@errorMessage</MudAlert>
+                                    </div>
+                            }
+                            <MudButton ButtonType=MudBlazor.ButtonType.Submit
+                                       Disabled="IsBusy"
+                                       Class="mt-2"
+                                       Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Size="Size.Large"
+                                       FullWidth="true"
+                                       OnClick="DoLogin">Giriş</MudButton>
+                        </EditForm>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </div>
+    </MudContainer>
+</MudItem>
+
+<style>
+    .login-background {
+        background-image: url("../img/login-background2.png");
+        min-height: 380px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        position: relative;
+    }
+</style>
+
+@code {
+
+    private UserForLoginDto userLogin = new();
+
+    private bool IsBusy = false;
+    private string errorMessage = "";
+
+    bool PasswordVisibility;
+    InputType PasswordInput = InputType.Password;
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private async Task DoLogin()
+    {
+        IsBusy = true;
+
+        errorMessage = "";
+
+        var result = await authService.LoginCompany(userLogin);
+
+        if (result.Success == false)
+        {
+            errorMessage = result.Message;
+        }
+        else
+        {
+            // var httpContextAccessor = ServiceTool.ServiceProvider.GetService<IHttpContextAccessor>();
+
+
+            // var claims = new List<Claim>
+            // {
+            //     new Claim(ClaimTypes.Name, result.Data.Name),
+            //     new Claim(ClaimTypes.Email, result.Data.Email),
+            //     new Claim("CompanyId", result.Data.CompanyId.ToString()),
+            //     new Claim(ClaimTypes.NameIdentifier, result.Data.Id.ToString())
+            // };
+
+            // if (result.Data.CompanyId == 1001)
+            //     claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+
+            // var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            // var principal = new ClaimsPrincipal(identity);
+
+            // var authProperties = new AuthenticationProperties
+            //     {
+            //         IsPersistent = true,
+            //         ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+            //     };
+
+            // await httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+
+            _NavigationManager.NavigateTo("/");
+        }
+
+
+        IsBusy = false;
+    }
+
+    void TogglePasswordVisibility()
+    {
+        @if (PasswordVisibility)
+        {
+            PasswordVisibility = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInput = InputType.Password;
+        }
+        else
+        {
+            PasswordVisibility = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInput = InputType.Text;
+        }
+    }
+}

@@ -1,0 +1,143 @@
+﻿@page "/data"
+@using Microsoft.AspNetCore.Authorization
+
+@inject IDataService dataService
+
+<PageTitle>Data Listesi</PageTitle>
+<MudOverlay Visible="@isBusy"></MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Data Listesi</MudText>
+</MudStack>
+
+
+<MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+    <thead>
+        <tr>
+            <th>İşlem Tipi</th>
+            <th>Tarih</th>
+            <th>Vade Tarihi</th>
+            <th>Fatura No</th>
+            <th>Açıklama</th>
+            <th>Stok/Masraf Adı</th>
+            <th>Stok Adet</th>
+            <th>Birim Adı</th>
+            <th>Kdv Tutar</th>
+            <th>Döviz Birim</th>
+            <th>Döviz İşlem Toplamı</th>
+            <th>TL İşlem Toplamı</th>
+            <th>TL Borç</th>
+            <th>TL Alacak</th>
+            <th>Alış KDV</th>
+            <th>Satış KDV</th>
+            <th>Döviz Borç</th>
+            <th>Döviz Alacak</th>
+            <th>TL Hareketler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < datas.Count; i++)
+        {
+
+            <tr>
+                <td>@datas[i].ProcessType</td>
+                <td>@datas[i].ProcessDate.Value.ToShortDateString()</td>
+                <td>@datas[i].MaturityDate.Value.ToShortDateString()</td>
+                <td>@datas[i].InvoiceNumber</td>
+                <td>@datas[i].Description</td>
+                <td>@datas[i].ExpenseType</td>
+                <td>@datas[i].Stock</td>
+                <td>@datas[i].Unit</td>
+                <td>@datas[i].TaxAmount</td>
+                <td>@datas[i].Currency</td>
+                <td>@datas[i].CurrencyTotalAmount</td>
+                <td>@datas[i].TLTotalAmount</td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE"))
+                    {
+                        if (datas[i].CurrencyTotalAmount > 0)
+                        {
+                            @(datas[i].Currency == "USD" ? datas[i].CurrencyTotalAmount * datas[i].USDExchange : datas[i].CurrencyTotalAmount * datas[i].EURExchange)
+                            ;
+                        }
+                        else
+                        {
+                            @datas[i].TLTotalAmount
+                        }
+                    }
+                </td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("SATIŞ") || datas[i].ProcessType.Contains("ÖDEME") || datas[i].ProcessType.Contains("ALIŞ İADE"))
+                    {
+                        if (datas[i].CurrencyTotalAmount > 0)
+                        {
+                            @(datas[i].Currency == "USD" ? datas[i].CurrencyTotalAmount * datas[i].USDExchange : datas[i].CurrencyTotalAmount * datas[i].EURExchange)
+                            ;
+                        }
+                        else
+                        {
+                            @datas[i].TLTotalAmount
+                        }
+                    }
+                </td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE"))
+                    {
+                        @datas[i].TaxAmount
+                    }
+                </td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("SATIŞ") || datas[i].ProcessType.Contains("ÖDEME") || datas[i].ProcessType.Contains("ALIŞ İADE"))
+                    {
+                        @datas[i].TaxAmount
+                    }
+                </td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE") && datas[i].CurrencyTotalAmount > 0)
+                    {
+                        @datas[i].CurrencyTotalAmount
+                    }
+                </td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("SATIŞ") || datas[i].ProcessType.Contains("ÖDEME") || datas[i].ProcessType.Contains("ALIŞ İADE") && datas[i].CurrencyTotalAmount > 0)
+                    {
+                        @datas[i].CurrencyTotalAmount
+                    }
+                </td>
+                <td>
+                    @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE"))
+                    {
+                        TLMovement = TLMovement - datas[i].TLTotalAmount;
+                        var price = TLMovement;
+                        <MudText Color="Color.Error">@price</MudText>
+                    }
+                    else
+                    {
+                        TLMovement = TLMovement + datas[i].TLTotalAmount;
+                        var price = TLMovement;
+                        <MudText>@price</MudText>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    private bool isBusy = false;
+    decimal TLMovement = 0;
+
+    private List<DataModel> datas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetAll();
+        isBusy = false;
+    }
+
+    private async Task GetAll()
+    {
+        datas = (await dataService.GetAllData()).Data.ToList();
+    }
+}

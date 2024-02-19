@@ -1,0 +1,273 @@
+﻿@page "/data/data-entry"
+@using Business.Enums
+@using Entities.Dto
+
+@inject IDataService dataService
+
+<PageTitle>Veri Girişi</PageTitle>
+<MudOverlay Visible="@isBusy"></MudOverlay>
+
+<MudStack Class="mb-2 pa-4" Row=true Justify="Justify.SpaceBetween">
+    <MudItem Style="width:105px;">
+        <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Veri Giriş</MudText>
+    </MudItem>
+
+    <MudGrid Class="d-flex justify-end" Spacing="1">
+        <MudItem xs="1">
+            <MudNumericField T="decimal" Variant="Variant.Outlined" Label="USD Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.USDExchange"></MudNumericField>
+        </MudItem>
+        <MudItem xs="1">
+            <MudNumericField T="decimal" Variant="Variant.Outlined" Label="EURO Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.EURExchange"></MudNumericField>
+        </MudItem>
+        <MudItem>
+
+            <MudFab StartIcon="@Icons.Material.Filled.Add" Label="Ekle" Color="Color.Primary" IconSize="Size.Small" OnClick="Add"></MudFab>
+            @if (dataCount > 1)
+            {
+                <MudFab StartIcon="@Icons.Material.Filled.Add" Label="Sil" Color="Color.Error" IconSize="Size.Small" OnClick="Delete"></MudFab>
+            }
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+<MudPaper Outlined=false Elevation="0">
+    <MudGrid Class="pa-4" Spacing="1">
+        <MudItem xs="2">
+            <MudSelect T="string" Label="İşlem Tipi" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true @bind-Value="data.ProcessType">
+                <MudSelectItem Value="@("ALIŞ")">ALIŞ</MudSelectItem>
+                <MudSelectItem Value="@("SATIŞ")">SATIŞ</MudSelectItem>
+                <MudSelectItem Value="@("TAHSİLAT")">TAHSİLAT</MudSelectItem>
+                <MudSelectItem Value="@("ÖDEME")">ÖDEME</MudSelectItem>
+                <MudSelectItem Value="@("ALIŞ İADE")">ALIŞ İADE</MudSelectItem>
+                <MudSelectItem Value="@("SATIŞ İADE")">SATIŞ İADE</MudSelectItem>
+                <MudSelectItem Value="@("ÜRETİME GİDEN")">ÜRETİME GİDEN</MudSelectItem>
+                <MudSelectItem Value="@("FİRE")">FİRE</MudSelectItem>
+                <MudSelectItem Value="@("İRSALİYE")">İRSALİYE</MudSelectItem>
+                <MudSelectItem Value="@("İRSALİYE")">İRSALİYE</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudDatePicker Label="Tarih" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="data.ProcessDate"></MudDatePicker>
+        </MudItem>
+        <MudItem xs="2">
+            <MudDatePicker Label="Vade Tarihi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="data.MaturityDate"></MudDatePicker>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect T="string" Label="İşlem Türü" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true @bind-Value="data.SalesType">
+                <MudSelectItem Value="@("NAKİT")">NAKİT</MudSelectItem>
+                <MudSelectItem Value="@("USDNAKİT")">USD NAKİT</MudSelectItem>
+                <MudSelectItem Value="@("BANKA")">BANKA</MudSelectItem>
+                <MudSelectItem Value="@("KREDİ KARTI")">KREDİ KARTI</MudSelectItem>
+                <MudSelectItem Value="@("CARİ")">CARİ</MudSelectItem>
+                <MudSelectItem Value="@("ÇEK/SENET")">ÇEK/SENET</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudTextField T="string" Label="Fatura No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.InvoiceNumber"></MudTextField>
+        </MudItem>
+        <MudItem xs="2">
+            <MudTextField T="string" Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.Description"></MudTextField>
+        </MudItem>
+    </MudGrid>
+    @for (int i = 0; i < dataCount; i++)
+    {
+        var index = i;
+
+        <MudGrid Class="pa-4" Spacing="1">
+            <MudItem xs="2">
+                <MudSelect T="string" Label="Masraf Adı" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true ValueChanged="@(s=>AddOrUpdateExpenseType(s,index))">
+                    <MudSelectItem Value="@("AVUKATLIK GİDERİ")">AVUKATLIK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("CEZALAR")">CEZALAR</MudSelectItem>
+                    <MudSelectItem Value="@("DOĞALGAZ GİDERİ")">DOĞALGAZ GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("ELEKTRİK GİDERİ")">ELEKTRİK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("FASON HİZMET GİDERİ")">FASON HİZMET GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("İNTERNET GİDERİ")">İNTERNET GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("KASKO GİDERİ")">KASKO GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("KIRTASİYE GİDERİ")">KIRTASİYE GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("KİRA GİDERİ")">KİRA GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("KOMİSYON GİDERİ")">KOMİSYON GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("LABORATUVAR GİDERİ")">LABORATUVAR GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("MUTFAK GİDERİ")">MUTFAK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("MÜŞAVİRLİK GİDERİ")">MÜŞAVİRLİK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("OFİS GİDERİ")">OFİS GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("PERSONEL GİDERİ")">PERSONEL GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("REKLAMASYON GİDERİ")">REKLAMASYON GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("SAĞLIK GİDERİ")">SAĞLIK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("SEYAHAT GİDERİ")">SEYAHAT GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("SGK GİDERİ")">SGK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("SU GİDERİ")">SU GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("TELEFON GİDERİ")">TELEFON GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("TEMİZLİK GİDERİ")">TEMİZLİK GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("VERGİ GİDERİ")">VERGİ GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("YAKIT GİDERİ")">YAKIT GİDERİ</MudSelectItem>
+                    <MudSelectItem Value="@("YARDIMCI MALZEMELER")">YARDIMCI MALZEMELER</MudSelectItem>
+                    <MudSelectItem Value="@("YEMEK GİDERİ")">YEMEK GİDERİ</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="1">
+                <MudNumericField T="int" Variant="Variant.Outlined" HideSpinButtons=true Label="Stok Adet" Margin="Margin.Dense" Min="1" ValueChanged="@(s=>AddOrUpdateStock(s,index))"></MudNumericField>
+            </MudItem>
+            <MudItem xs="1">
+                <MudSelect T="string" Label="Birim" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true ValueChanged="@(s=>AddOrUpdateUnit(s,index))">
+                    <MudSelectItem Value="@("ADET")">ADET</MudSelectItem>
+                    <MudSelectItem Value="@("KG")">KG</MudSelectItem>
+                    <MudSelectItem Value="@("METRE")">METRE</MudSelectItem>
+                    <MudSelectItem Value="@("KOLİ")">KOLİ</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="KDV Tutarı" Margin="Margin.Dense" ValueChanged="@(s=> AddOrUpdateTaxAmount(s,index))"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudSelect T="string" Label="Döviz Birimi" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true ValueChanged="@(s=>AddOrUpdateCurrency(s,index))">
+                    <MudSelectItem Value="@("TL")">TL</MudSelectItem>
+                    <MudSelectItem Value="@("USD")">USD</MudSelectItem>
+                    <MudSelectItem Value="@("EUR")">EUR</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="Döviz İşlem Toplamı" Margin="Margin.Dense" ValueChanged="@(s=>AddOrUpdateCurrencyTotalAmount(s,index))"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="TL İşlem Toplamı" Margin="Margin.Dense" ValueChanged="@(s=>AddOrUpdateTLTotalAmount(s,index))"></MudNumericField>
+            </MudItem>
+        </MudGrid>
+    }
+    <MudItem Class="d-flex justify-end mr-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="Submit">Kaydet</MudButton>
+    </MudItem>
+</MudPaper>
+@code {
+
+    private bool isBusy = false;
+
+    private DataModel data = new();
+
+    private int dataCount = 1;
+
+    private void Add() => dataCount++;
+    private void Delete()
+    {
+        if (dataCount == dataEntries.Count == false)
+            dataCount--;
+    }
+
+    private List<DataEntryDto> dataEntries = new();
+
+    private async Task Submit()
+    {
+        foreach (var dataEntry in dataEntries)
+        {
+            data.ExpenseType = dataEntry.ExpenseType;
+            data.Stock = dataEntry.Stock;
+            data.Unit = dataEntry.Unit;
+            data.TaxAmount = dataEntry.TaxAmount;
+            data.Currency = dataEntry.Currency;
+            data.CurrencyTotalAmount = dataEntry.CurrencyTotalAmount;
+            data.TLTotalAmount = dataEntry.TLTotalAmount;
+
+            if (data.Currency == "USD")
+                data.TLTotalAmount = data.CurrencyTotalAmount * data.USDExchange;
+            else if (data.Currency == "EUR")
+                data.TLTotalAmount = data.CurrencyTotalAmount * data.EURExchange;
+
+            var result = await dataService.AddData(data);
+            if (result.Success)
+            {
+                dataEntries.Clear();
+                dataCount = 1;
+                data.Id = Guid.NewGuid().ToString();
+            }
+
+        }
+
+    }
+
+    #region Ekleme Güncelleme Methodları
+
+    private void AddOrUpdateExpenseType(string type, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    ExpenseType = type,
+                });
+        else
+            dataEntry.ExpenseType = type;
+    }
+
+    private void AddOrUpdateStock(int stock, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Stock = stock
+                });
+        else
+            dataEntry.Stock = stock;
+    }
+
+    private void AddOrUpdateUnit(string unit, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Unit = unit
+                });
+        else
+            dataEntry.Unit = unit;
+    }
+
+    private void AddOrUpdateTaxAmount(decimal taxAmount, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    TaxAmount = taxAmount
+                });
+        else
+            dataEntry.TaxAmount = taxAmount;
+    }
+
+    private void AddOrUpdateCurrency(string currency, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Currency = currency
+                });
+        else
+            dataEntry.Currency = currency;
+    }
+
+    private void AddOrUpdateCurrencyTotalAmount(decimal currencyTotalAmount, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    CurrencyTotalAmount = currencyTotalAmount
+                });
+        else
+            dataEntry.CurrencyTotalAmount = currencyTotalAmount;
+    }
+
+    private void AddOrUpdateTLTotalAmount(decimal TLTotalAmount, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    TLTotalAmount = TLTotalAmount
+                });
+        else
+            dataEntry.TLTotalAmount = TLTotalAmount;
+    }
+    #endregion
+
+}

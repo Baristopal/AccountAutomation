@@ -1,0 +1,91 @@
+﻿@using Business.Abstract
+@inject IPayrollService payrollService
+@inject IPersonnelService personnelService
+
+<MudDialog DisableSidePadding=true>
+    <DialogContent>
+        <MudContainer>
+            <MudGrid>
+                <MudItem xs="3">
+                    <MudSelect T="int" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" @bind-Value="staffId" Margin="Margin.Dense">
+                        @foreach (var item in personnels)
+                        {
+                            <MudSelectItem Value="@item.StaffId">@item.FirstName @item.LastName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField T="string" Label="Teşvik No" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Payroll.IncentiveNumber"></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudDatePicker Label="Giriş Tarihi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="Payroll.StartDate"></MudDatePicker>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudDatePicker Label="Çıkış Tarihi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="Payroll.EndDate"></MudDatePicker>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudNumericField T="decimal" Label="Bordro Brüt Ücret" HideSpinButtons=true Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Payroll.PayrollGrossWage" />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudNumericField T="decimal" Label="Bordro Net Ücret" HideSpinButtons=true Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Payroll.PayrollNetSalary" />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudNumericField T="int" Label="Bordro Hesap Gün" HideSpinButtons=true Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Payroll.WorkingDays" />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudNumericField T="decimal" Label="Personel Sabit Maaş" HideSpinButtons=true Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Payroll.NetSalary" />
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudItem>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="Submit">@(isNew ? "Kaydet" : "Güncelle")</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance mudDialog { get; set; }
+
+    [Parameter]
+    public PayrollModel Payroll { get; set; } = new();
+
+    [Parameter]
+    public bool isNew { get; set; }
+    private int staffId;
+    private List<PersonnelModel> personnels = new();
+
+    private void Cancel() => mudDialog.Cancel();
+    protected override async Task OnInitializedAsync()
+    {
+        await GetPersonnels();
+    }
+    private async Task GetPersonnels()
+    {
+        personnels = (await personnelService.GetAllAsync()).Data.ToList();
+    }
+
+
+    private async Task Submit()
+    {
+        if (isNew)
+        {
+            var personnel = personnels.FirstOrDefault(x => x.StaffId == staffId);
+            Payroll.StaffId = personnel.StaffId;
+            Payroll.IdentityNumber = personnel.IdentityNumber;
+            Payroll.FirstName = personnel.FirstName;
+            Payroll.LastName = personnel.LastName;
+            Payroll.Iban = personnel.Iban;
+            await payrollService.InsertAsync(Payroll);
+            mudDialog.Close(Payroll);
+        }
+        else
+        {
+            await payrollService.UpdateAsync(Payroll);
+            mudDialog.Close();
+
+        }
+    }
+}

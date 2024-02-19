@@ -1,0 +1,159 @@
+﻿@page "/Finance/Case"
+
+@inject IDataService dataService
+
+<PageTitle>Kasa</PageTitle>
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Kasa</MudText>
+</MudStack>
+
+<MudItem Style="text-align:center;" Class="mb-3">
+    <MudText Typo="Typo.h6">Kasa Hareketleri</MudText>
+    <MudCollapse Expanded=true >
+        <MudSimpleTable Dense=true Bordered=true FixedHeader=true Elevation="0">
+            <thead>
+                <tr>
+                    <th>Nakitler</th>
+                    <th>Giren</th>
+                    <th>Çıkan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < datas.Count; i++)
+                {
+                    var data = datas[i];
+                    <tr>
+                        <td rowspan="2" style="border-left: 1pt solid #e0e0e0ff;">@data.SalesType</td>
+                        <td style="@bottomGrayColor">
+                            @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains("TAHSİLAT"))
+                            {
+                                ingoingCash = outgoingCash + data.CurrencyTotalAmount;
+                                var price = ingoingCash;
+                                @price
+                            }
+                            else if (data.ProcessType.Contains("TAHSİLAT"))
+                            {
+                                ingoingCash = outgoingCash + data.TLTotalAmount;
+                                var price = ingoingCash;
+                                @price
+                            }
+                        </td>
+                        <td style="@bottomGrayColor">
+                            @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains("ÖDEME"))
+                            {
+                                outgoingCash = outgoingCash + data.CurrencyTotalAmount;
+                                var price = outgoingCash;
+                                @price
+                            }
+                            else if (data.ProcessType.Contains("ÖDEME"))
+                            {
+                                outgoingCash = outgoingCash + data.TLTotalAmount;
+                                var price = outgoingCash;
+                                @price
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="@bottomGrayColor text-align:center; @(ingoingCash - outgoingCash < 0 ? "color:red" : "color:green")">
+                            @{
+                                var totalAmount = ingoingCash - outgoingCash;
+                                @totalAmount
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    </MudCollapse>
+</MudItem>
+
+<MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+    <thead>
+        <tr>
+            <th>Tarih</th>
+            <th>Hesap</th>
+            <th>Açıklamalar</th>
+            <th>Giren</th>
+            <th>Çıkan(-)</th>
+            <th>Kasalar</th>
+            <th>Not</th>
+            <th>Hareketler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < datas.Count; i++)
+        {
+            var data = datas[i];
+            var price = data.CurrencyTotalAmount > 0 ? data.CurrencyTotalAmount : data.TLTotalAmount;
+            <tr>
+                <td>@data.ProcessDate.ToShortDateString()</td>
+                <td></td>
+                <td>@data.Description</td>
+                <td>
+                    @if (data.ProcessType.Contains("TAHSİLAT"))
+                    {
+                        @price
+                    }
+                </td>
+                <td>
+                    @if (data.ProcessType.Contains("ÖDEME"))
+                    {
+                        @price
+                    }
+                </td>
+                <td>
+                    @if (data.SalesType.Contains("NAKİT"))
+                    {
+                        <MudText>@data.SalesType (@data.Currency)</MudText>
+                    }
+
+                    @data.SalesType
+                </td>
+                <td>
+                    @data.ExpenseType
+                </td>
+                <td>
+                    @if (data.ProcessType.Contains("ÖDEME"))
+                    {
+                        TLMovement = TLMovement - datas[i].TLTotalAmount;
+                        var movement = TLMovement;
+                        <MudText Color="Color.Error">@movement</MudText>
+                    }
+                    else if (data.ProcessType.Contains("TAHSİLAT"))
+                    {
+                        TLMovement = TLMovement + datas[i].TLTotalAmount;
+                        var movement = TLMovement;
+                        <MudText>@movement</MudText>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    private bool isBusy = false;
+    decimal TLMovement = 0;
+    decimal ingoingCash = 0;
+    decimal outgoingCash = 0;
+
+    private string bottomGrayColor = "border-bottom: 1pt solid #e0e0e0ff; border-right: 1pt solid #e0e0e0ff;";
+
+    private List<CaseModel> datas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetCase();
+        isBusy = false;
+    }
+
+    private async Task GetCase()
+    {
+        datas = (await dataService.GetCase()).Data.ToList();
+    }
+}

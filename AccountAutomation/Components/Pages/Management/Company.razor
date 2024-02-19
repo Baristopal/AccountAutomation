@@ -1,0 +1,76 @@
+﻿@page "/companies"
+
+@using WebUI.Components.Pages.Management.Components
+
+@inject ICompanyService companyService
+@inject IDialogService dialogService
+
+<PageTitle>Firma Listesi</PageTitle>
+<MudOverlay Visible="@isBusy"></MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Firma Listesi</MudText>
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="@(() => EditCompany(new CompanyModel()))" Label="Ekle" Color="Color.Primary" />
+</MudStack>
+
+<MudSimpleTable>
+    <thead>
+        <tr>
+            <th>Firma ID</th>
+            <th>Firma Ünvanı</th>
+            <th>Email</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in companies)
+        {
+            <tr>
+                <td>@item.CompanyId</td>
+                <td>@item.Name</td>
+                <td>@item.Email</td>
+                <td>
+                    <MudFab StartIcon="@Icons.Material.Filled.Edit" Size="Size.Small" Label="Düzenle" OnClick="@(() => EditCompany(item))" Color="Color.Primary" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+
+@code {
+    private bool isBusy = false;
+    private List<CompanyModel> companies = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetCompanies();
+        isBusy = false;
+    }
+
+    private async Task GetCompanies()
+    {
+        companies = (await companyService.GetAllCompanies()).Data.ToList();
+    }
+
+    private async Task EditCompany(CompanyModel model)
+    {
+        bool isNew = string.IsNullOrEmpty(model?.Name) == false || model?.Name?.Length > 0 ? false : true;
+        DialogParameters parameters = new();
+        parameters.Add("Company", model);
+        parameters.Add("isNew", isNew);
+        var dialog = dialogService.Show<EditCompany>("Firma Ekle/Güncelle", parameters, options: MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            if (isNew)
+            {
+                var data = dialogResult.Data as CompanyModel;
+                companies.Add(data);
+            }
+            else
+                await GetCompanies();
+        }
+    }
+}

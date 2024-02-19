@@ -1,0 +1,28 @@
+﻿<link href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" rel="stylesheet">
+
+
+<MudNavMenu>
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+    <MudNavLink Href="/data/data-entry" Icon="@Icons.Material.Filled.Storage">Veri Girişi</MudNavLink>
+    <MudNavLink Href="/data" Icon="@Icons.Material.Filled.Receipt" >Data</MudNavLink>
+    <MudNavGroup Title="Finans" Icon="@Icons.Material.Filled.Analytics" Expanded="true">
+        <MudNavLink Href="/Finance/Case" Icon="@Icons.Material.Filled.People" IconColor="Color.Success">Kasa</MudNavLink>
+        <MudNavLink Href="/security" Icon="@Icons.Material.Filled.Security" IconColor="Color.Info">Security</MudNavLink>
+    </MudNavGroup>
+
+    <MudDivider Class="mb-2"></MudDivider>
+
+    <MudNavGroup Title="Personel" Icon="@Icons.Material.Filled.People" IconColor="Color.Primary" Expanded=true>
+        <MudNavLink Href="/personnel">Personel Listesi</MudNavLink>
+        <MudNavLink Href="/payroll">Bordro Hesaplama</MudNavLink>
+        <MudNavLink Href="/shift">Mesai Hesaplama</MudNavLink>
+    </MudNavGroup>
+
+    <MudDivider Class="mb-2"></MudDivider>
+    <MudNavGroup Title="Yönetim" Icon="@Icons.Material.Filled.Settings" IconColor="Color.Primary" Expanded=true>
+        <MudNavLink Href="/companies">Firmalar</MudNavLink>
+    </MudNavGroup>
+    <MudNavGroup Title="Tanımlamalar" IconColor="Color.Primary">
+        <MudNavLink Href="/defination/processType">İşlem Tipleri</MudNavLink>
+    </MudNavGroup>
+</MudNavMenu>

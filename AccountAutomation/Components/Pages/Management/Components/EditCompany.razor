@@ -1,0 +1,65 @@
+﻿@using Library.Core.Utilities.Helpers
+@inject ICompanyService companyService
+
+<MudDialog DisableSidePadding=true>
+    <DialogContent>
+        <MudContainer>
+            <MudGrid>
+                <MudItem xs="4">
+                    <MudTextField T="string" Label="Email" InputType="InputType.Email" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Company.Email"></MudTextField>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField T="string" Label="Ad" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Company.Name"></MudTextField>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField T="string" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Password" For="@(()=>Company.Password)" OnAdornmentClick="GeneratePassword" Margin="Margin.Dense" Variant="Variant.Outlined" Label="Şifre" @bind-Value="@Company.Password" />
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudItem>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="Submit">@(isNew ? "Kaydet" : "Güncelle")</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance mudDialog { get; set; }
+
+    [Parameter]
+    public CompanyModel Company { get; set; } = new();
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        if (isNew)
+            GeneratePassword();
+    }
+
+
+    private void Cancel() => mudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (isNew)
+        {
+            await companyService.AddCompany(Company);
+            mudDialog.Close(Company);
+        }
+        else
+        {
+            await companyService.UpdateCompany(Company);
+            mudDialog.Close();
+        }
+    }
+
+    private void GeneratePassword()
+    {
+        Company.Password = SecurityHelper.GeneratePassword();
+    }
+}

@@ -1,0 +1,102 @@
+﻿@page "/payroll"
+
+@using System.Net.Http.Json
+@using Business.Abstract
+@using WebUI.Components.Pages.Staff.Components
+
+
+@inject IDialogService dialogService
+@inject IPayrollService payrollService
+
+
+<PageTitle>Bordro Hesaplama</PageTitle>
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Personel Bordro Listesi</MudText>
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="@(() => EditPayyroll(new PayrollModel()))" Label="Ekle" Color="Color.Primary" />
+</MudStack>
+
+<MudSimpleTable Bordered=true Hover=true Dense=true Striped=true>
+    <thead>
+        <tr>
+            <th>TC Kimlik No</th>
+            <th>Adı</th>
+            <th>Soyadı</th>
+            <th>Teşvik No</th>
+            <th>Giriş Tarihi</th>
+            <th>Çıkış Tarihi</th>
+            <th>IBAN</th>
+            <th>Bordro Brüt Ücret</th>
+            <th>Bordro Net Ücret</th>
+            <th>Bordro Hesap Gün</th>
+            <th>Personel Sabit Ücret</th>
+            <th>Hesaplanan Ücret</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in payrolls)
+        {
+            <tr>
+                <td>@item.IdentityNumber</td>
+                <td>@item.FirstName</td>
+                <td>@item.LastName</td>
+                <td>@item.IncentiveNumber</td>
+                <td>@item.StartDate</td>
+                <td>@item.EndDate</td>
+                <td>@item.Iban</td>
+                <td>@item.PayrollGrossWage</td>
+                <td>@item.PayrollNetSalary</td>
+                <td>@item.WorkingDays</td>
+                <td>@item.NetSalary</td>
+                <td>@(Math.Round((item.NetSalary / 30) * item.WorkingDays))</td>
+                <td>
+                    <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => EditPayyroll(item))" Color="Color.Primary"></MudFab>
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+
+@code {
+    List<PayrollModel> payrolls = new();
+    bool isBusy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetPayrolls();
+        isBusy = false;
+    }
+
+    private async Task GetPayrolls()
+    {
+        payrolls = (await payrollService.GetAllAsync()).Data.ToList();
+    }
+
+    private async Task EditPayyroll(PayrollModel model)
+    {
+        bool isNew = string.IsNullOrEmpty(model?.FirstName) == false || model?.FirstName?.Length > 0 ? false : true;
+
+        DialogParameters parameters = new();
+        parameters.Add("Payroll", model);
+        parameters.Add("isNew", isNew);
+        var dialog = dialogService.Show<EditPayroll>("Bordro Hesaplama", parameters, options: MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            if (isNew)
+            {
+                var data = dialogResult.Data as PayrollModel;
+                payrolls.Add(data);
+            }
+            else
+                await GetPayrolls();
+        }
+    }
+
+}

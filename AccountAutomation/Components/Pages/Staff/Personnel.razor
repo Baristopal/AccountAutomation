@@ -1,0 +1,85 @@
+﻿@page "/personnel"
+@using Microsoft.AspNetCore.Authorization
+@using WebUI.Components.Pages.Staff.Components
+
+@inject IPersonnelService personnelService
+@inject IDialogService dialogService
+
+<PageTitle>Personel Listesi</PageTitle>
+<MudOverlay Visible="@isBusy" DarkBackground="true" >
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Personel Listesi</MudText>
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="@(() => EditPersonnel(new PersonnelModel()))" Label="Ekle" Color="Color.Primary" />
+</MudStack>
+
+<MudSimpleTable Bordered=true Hover=true Dense=true Striped=true>
+    <thead>
+        <tr>
+            <th>Personel Id</th>
+            <th>TC Kimlik No</th>
+            <th>Ad</th>
+            <th>Soyad</th>
+            <th>Telefon</th>
+            <th>IBAN</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in personnels)
+        {
+            <tr>
+                <td>@item.StaffId</td>
+                <td>@item.IdentityNumber</td>
+                <td>@item.FirstName</td>
+                <td>@item.LastName</td>
+                <td>@item.Phone</td>
+                <td>@item.Iban</td>
+                <td>
+                    <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => EditPersonnel(item))" Color="Color.Primary"></MudFab>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    private List<PersonnelModel> personnels = new();
+    private bool isBusy = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetPersonnels();
+        isBusy = false;
+    }
+
+    private async Task GetPersonnels()
+    {
+        personnels = (await personnelService.GetAllAsync()).Data.ToList();
+    }
+
+    private async Task EditPersonnel(PersonnelModel model)
+    {
+        bool isNew = string.IsNullOrEmpty(model?.FirstName) == false || model?.FirstName?.Length > 0 ? false : true;
+        DialogParameters parameters = new();
+        parameters.Add("Personnel", model);
+        parameters.Add("isNew", isNew);
+        var dialog = dialogService.Show<EditPersonnel>("Personel Ekle/Düzelt", parameters, options: MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            if (isNew)
+            {
+                var data = dialogResult.Data as PersonnelModel;
+                personnels.Add(data);
+            }
+            else
+                await GetPersonnels();
+        }
+    }
+}

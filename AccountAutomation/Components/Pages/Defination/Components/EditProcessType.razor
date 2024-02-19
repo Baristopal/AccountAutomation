@@ -1,0 +1,77 @@
+﻿@using Business.Enums
+
+
+@inject IDefinationService definationService
+@inject MessageboxHelper messageboxHelper
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="4" Class="align-self-center">
+                @if (isNew)
+                {
+                    <MudSelect T="string" Label="Durumu Seçiniz" Variant="Variant.Outlined" @bind-Value="@selectedStatusName" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var enumName in Enum.GetNames(typeof(ProcessTypeEnum)))
+                        {
+                            <MudSelectItem Value=@(enumName)> @enumName </MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+                else
+                {
+                    <MudText>@processType.Code</MudText>
+                }
+            </MudItem>
+            <MudItem xs="8">
+                <MudTextField T="string" Label="Türkçe durumu giriniz" Variant="Variant.Outlined" @bind-Value="@turkishStatus"></MudTextField>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public ProcessTypeModel processType { get; set; } = new();
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+    private ProcessTypeEnum processTypeEnum;
+    private string selectedStatusName;
+
+    private string turkishStatus;
+
+    private LanguageEnum languageEnum;
+
+    private async Task Submit()
+    {
+        try
+        {
+            if (turkishStatus is not null)
+                processType.Name = turkishStatus;
+
+            processType.Id = selectedStatusName;
+            processType.Code = selectedStatusName;
+
+            if (isNew)
+                await definationService.Add(processType.Id, processType);
+            else
+                await definationService.Update(processType.Id, processType);
+
+            messageboxHelper.ShowSuccessSnackMessage();
+            MudDialog.Close(processType);
+        }
+        catch
+        {
+            messageboxHelper.ShowSnackMessage("İşlem Tipi Eklenemedi", Severity.Error);
+        }
+    }
+
+}

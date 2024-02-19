@@ -1,0 +1,60 @@
+﻿@inject IPersonnelService personnelService
+
+
+<MudDialog DisableSidePadding=true>
+    <DialogContent>
+        <MudContainer>
+            <MudGrid>
+                <MudItem xs="3">
+                    <MudTextField T="string" Label="TC Kimlik No" Mask="@(new PatternMask("00000000000"))" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Personnel.IdentityNumber"></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField T="string" Label="Ad" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Personnel.FirstName"></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField T="string" Label="Soyad" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Personnel.LastName"></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField T="string" Label="Telefon" Mask="@(new PatternMask("0000 000 00 00"))" Variant="Variant.Outlined" Margin="Margin.Dense"  @bind-Value="Personnel.Phone"></MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="IBAN" Mask="@(new PatternMask("TR00 0000 0000 0000 0000 0000 00"))" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable=true @bind-Value="Personnel.Iban"></MudTextField>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudItem>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="Submit">@(isNew ? "Kaydet" : "Güncelle")</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance mudDialog { get; set; }
+
+    [Parameter]
+    public PersonnelModel Personnel { get; set; } = new();
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+    private void Cancel() => mudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (isNew)
+        {
+            await personnelService.InsertAsync(Personnel);
+            mudDialog.Close(Personnel);
+        }
+        else
+        {
+            await personnelService.UpdateAsync(Personnel);
+            mudDialog.Close();
+
+        }
+    }
+}

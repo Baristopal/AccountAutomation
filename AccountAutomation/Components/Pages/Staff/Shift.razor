@@ -1,0 +1,25 @@
+﻿@page "/shift"
+
+
+<PageTitle>Mesai Hesaplama</PageTitle>
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Personel Mesai Listesi</MudText>
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" Label="Ekle" Color="Color.Primary" />
+</MudStack>
+
+<MudSimpleTable Bordered=true Hover=true Dense=true Striped=true>
+    <thead>
+        <tr>
+            <th></th>
+        </tr>
+    </thead>
+</MudSimpleTable>
+
+
+@code {
+    private bool isBusy = false;
+}
