@@ -2,44 +2,87 @@
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Business.Concrete;
 public class DataManager : IDataService
 {
     private readonly IDataDal _dataDal;
+    private readonly ILogger<DataManager> _logger;
 
-    public DataManager(IDataDal dataDal)
+    public DataManager(IDataDal dataDal, ILogger<DataManager> logger)
     {
         _dataDal = dataDal;
+        _logger = logger;
     }
 
     public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllData()
     {
-        var result = await _dataDal.GetAll();
-        return new BaseResponse<IEnumerable<DataModel>>(result,true);
+        try
+        {
+            var result = await _dataDal.GetAll();
+            return new BaseResponse<IEnumerable<DataModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>(new List<DataModel>(), false, ex.Message);
+        }
     }
 
     public async Task<BaseResponse<DataModel>> AddData(DataModel model)
     {
-        await _dataDal.Insert(model);
-        return new BaseResponse<DataModel>(model,true);
+        try
+        {
+            await _dataDal.Insert(model);
+            return new BaseResponse<DataModel>(model, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<DataModel>(false, ex.Message);
+        }
     }
 
     public async Task<BaseResponse<DataModel>> UpdateData(DataModel model)
     {
-        await _dataDal.Update(model);
-        return new BaseResponse<DataModel>(model,true);
+        try
+        {
+            await _dataDal.Update(model);
+            return new BaseResponse<DataModel>(model, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<DataModel>(false, ex.Message);
+        }
     }
 
     public async Task<BaseResponse<DataModel>> GetDataById(string id)
     {
-        var result = await _dataDal.GetById(id);
-        return new BaseResponse<DataModel>(result,true);
+        try
+        {
+            var result = await _dataDal.GetById(id);
+            return new BaseResponse<DataModel>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<DataModel>(new DataModel(), false, ex.Message);
+        }
     }
 
     public async Task<BaseResponse<IEnumerable<CaseModel>>> GetCase()
     {
-        var result = await _dataDal.GetCase();
-        return new BaseResponse<IEnumerable<CaseModel>>(result,true);
+        try
+        {
+            var result = await _dataDal.GetCase();
+            return new BaseResponse<IEnumerable<CaseModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<CaseModel>>(new List<CaseModel>(), false, ex.Message);
+        }
     }
 }

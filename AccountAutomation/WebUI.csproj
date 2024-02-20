@@ -9,6 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.4.15" />
     <PackageReference Include="MudBlazor" Version="6.15.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="Serilog.Sinks.Datadog.Logs" Version="0.5.2" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
@@ -19,7 +22,6 @@
 
   <ItemGroup>
     <Folder Include="Authentication\" />
-    <Folder Include="Utilities\Extensions\" />
   </ItemGroup>
 
 </Project>

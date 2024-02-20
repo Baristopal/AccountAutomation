@@ -8,8 +8,13 @@ using DataAccess.Concrete;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Datadog.Logs;
+using Serilog.Sinks.SystemConsole.Themes;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
 using WebUI.Services;
 using WebUI.Utilities.Helpers;
 
@@ -33,6 +38,39 @@ builder.Services.AddCouchbase(opt =>
     opt.Password = "Bb5b_FP8ve7s_K";
 });
 builder.Services.AddScoped<MessageboxHelper>();
+
+
+#region Serilog
+
+string environment = $"{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")}";
+
+if (string.IsNullOrEmpty(environment))
+    environment = "Production";
+else
+    Console.OutputEncoding = Encoding.UTF8;
+
+LogEventLevel level = (environment == "Production" ? LogEventLevel.Warning : LogEventLevel.Information);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", level)
+            .MinimumLevel.Override("Worker", LogEventLevel.Information)
+            .MinimumLevel.Override("Host", level)
+            .MinimumLevel.Override("System", level)
+            .MinimumLevel.Override("Function", level)
+            .MinimumLevel.Override("Azure.Core", level)
+            .MinimumLevel.Override("Couchbase", LogEventLevel.Error)
+            .MinimumLevel.Override("Azure.Core", LogEventLevel.Error)
+            .MinimumLevel.Override("Azure.Messaging.ServiceBus", LogEventLevel.Warning)
+    .WriteTo.DatadogLogs(
+    apiKey: "d2ad5f5ed765d175124ddbc553fd963c",
+    configuration: new DatadogConfiguration() { Url = "https://http-intake.logs.datadoghq.com" })
+     .WriteTo.Console(theme: SystemConsoleTheme.Colored
+            , outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
+            .CreateLogger();
+
+#endregion
+
 
 //builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 //        .AddCookie(options =>
