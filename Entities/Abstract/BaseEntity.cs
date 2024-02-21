@@ -1,8 +1,13 @@
-﻿namespace Entities.Abstract;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace Entities.Abstract;
 public class BaseEntity
 {
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
     public virtual string Id { get; set; } = Guid.NewGuid().ToString();
-    public DateTime CreateDate { get; set; } = DateTime.Now;
+    public DateTime CreatedDate { get; set; } = DateTime.Now;
     public DateTime UpdatedDate { get; set; } = DateTime.Now;
     public bool IsDeleted { get; set; } = false;
     public bool IsActive { get; set; } = true;

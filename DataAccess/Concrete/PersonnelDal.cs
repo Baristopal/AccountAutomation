@@ -1,45 +1,42 @@
-﻿using Couchbase;
+﻿using Core.Utilities;
 using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.Models;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace DataAccess.Concrete;
-public class PersonnelDal(IClusterProvider clusterProvider) : IPersonnelDal
+public class PersonnelDal : IPersonnelDal
 {
-    public async Task InsertAsync(PersonnelModel model)
+    private readonly IMongoDbHelper _mongoDbHelper;
+
+    public PersonnelDal(IMongoDbHelper mongoDbHelper)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var bucket = await cluster.BucketAsync("AccountAutomation");
-        var staffId =(await cluster.QueryAsync<int>("SELECT RAW MAX(p.staffId) from AccountAutomation._default.Personnel as p where p.isDeleted = false")).SingleOrDefaultAsync().Result;
-        model.StaffId = staffId + 1;
-        _ = await bucket.Collection("Personnel").InsertAsync(model.Id, model);
+        _mongoDbHelper = mongoDbHelper;
     }
 
-    public async Task UpdateAsync(PersonnelModel model)
+    public async Task<List<PersonnelModel>> GetAll()
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var bucket = await cluster.BucketAsync("AccountAutomation");
-        _ = await bucket.Collection("Personnel").ReplaceAsync(model.Id, model);
+        var filter = Builders<PersonnelModel>.Filter.Eq(p => p.IsDeleted, false);
+        var result = await _mongoDbHelper.GetAllAsync(filter);
+        return result;
     }
 
-    public async Task<IEnumerable<PersonnelModel>> GetAllAsync()
+    public async Task<PersonnelModel> GetById(string id)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var result = await cluster.QueryAsync<PersonnelModel>("SELECT p.* FROM AccountAutomation._default.Personnel as p WHERE p.isDeleted = false ORDER BY p.staffId");
-        return await result.ToListAsync();
+        var result = await _mongoDbHelper.GetByIdAsync<PersonnelModel>(id);
+        return result;
     }
 
-    public async Task<PersonnelModel> GetByIdAsync(string id)
+    public async Task Insert(PersonnelModel model)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var bucket = await cluster.BucketAsync("AccountAutomation");
-        var result = await bucket.Collection("Personnel").GetAsync(id);
-        return result.ContentAs<PersonnelModel>()!;
+        await _mongoDbHelper.InsertAsync(model);
     }
 
-    public async Task DeleteByIdAsync(string id)
+    public async Task Update(PersonnelModel model)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        await cluster.QueryAsync<bool>($"UPDATE AccountAutomation._default.Personnel as p SET p.isDeleted = true WHERE p.isDeleted = false AND p.id = {id}");
+        await _mongoDbHelper.UpdateAsync(model);
     }
+
 }

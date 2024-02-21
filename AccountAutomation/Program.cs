@@ -5,6 +5,8 @@ using Core.Utilities.Helpers;
 using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using DataAccess.Concrete;
+using Entities.Models;
+using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
@@ -21,14 +23,13 @@ using WebUI.Utilities.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettigns"));
 
-builder.Services.AddTransient<IDbConnection>(sql => new SqlConnection(builder.Configuration.GetConnectionString("default")));
 builder.Services.AddMudServices();
 
 builder.Services.AddCouchbase(opt =>
@@ -102,7 +103,7 @@ builder.Services.AddScoped<IDefinationService, DefinationManager>();
 builder.Services.AddScoped<INoSqlHelper, CouchbaseHelper>();
 builder.Services.AddScoped<IDataService, DataManager>();
 builder.Services.AddScoped<IDataDal, DataDal>();
-
+builder.Services.AddScoped<IMongoDbHelper, MongoDbHelper>();
 
 
 //DependencyInjectionExtensions.ServiceTool.Create(builder.Services);

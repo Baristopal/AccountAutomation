@@ -4,10 +4,8 @@ namespace DataAccess.Abstract;
 
 public interface IPersonnelDal
 {
-    Task InsertAsync(PersonnelModel model);
-    Task UpdateAsync(PersonnelModel model);
-    Task<IEnumerable<PersonnelModel>> GetAllAsync();
-    Task<PersonnelModel> GetByIdAsync(string id);
-    Task DeleteByIdAsync(string id);
-
+    Task<List<PersonnelModel>> GetAll();
+    Task<PersonnelModel> GetById(string id);
+    Task Insert(PersonnelModel model);
+    Task Update(PersonnelModel model);
 }

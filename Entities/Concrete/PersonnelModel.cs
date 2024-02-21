@@ -1,6 +1,8 @@
 ﻿using Entities.Abstract;
+using Library.Entities.Attributes;
 
 namespace Entities.Concrete;
+[NoSqlConfig("AccountAutomation", "Personnel")]
 public class PersonnelModel :BaseEntity
 {
     public int StaffId { get; set; }

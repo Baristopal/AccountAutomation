@@ -23,7 +23,7 @@ public class CouchbaseHelper : INoSqlHelper
         return await result.ToListAsync().ConfigureAwait(false);
     }
 
-    public async Task<T> GetByIdAsync<T>(string dataId)
+    public async Task<T> GetByIdAsync<T>(string dataId) 
     {
         try
         {

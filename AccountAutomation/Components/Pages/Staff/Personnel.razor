@@ -6,7 +6,7 @@
 @inject IDialogService dialogService
 
 <PageTitle>Personel Listesi</PageTitle>
-<MudOverlay Visible="@isBusy" DarkBackground="true" >
+<MudOverlay Visible="@isBusy" DarkBackground="true">
     <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
 </MudOverlay>
 
@@ -28,20 +28,23 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in personnels)
+        @if (personnels.Any())
         {
-            <tr>
-                <td>@item.StaffId</td>
-                <td>@item.IdentityNumber</td>
-                <td>@item.FirstName</td>
-                <td>@item.LastName</td>
-                <td>@item.Phone</td>
-                <td>@item.Iban</td>
-                <td>
-                    <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => EditPersonnel(item))" Color="Color.Primary"></MudFab>
-                </td>
+            @foreach (var item in personnels)
+            {
+                <tr>
+                    <td>@item.StaffId</td>
+                    <td>@item.IdentityNumber</td>
+                    <td>@item.FirstName</td>
+                    <td>@item.LastName</td>
+                    <td>@item.Phone</td>
+                    <td>@item.Iban</td>
+                    <td>
+                        <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => EditPersonnel(item))" Color="Color.Primary"></MudFab>
+                    </td>
 
-            </tr>
+                </tr>
+            }
         }
     </tbody>
 </MudSimpleTable>

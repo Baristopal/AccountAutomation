@@ -3,6 +3,7 @@ using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 
 namespace Business.Concrete;
 public class PersonnelManager : IPersonnelService
@@ -18,7 +19,9 @@ public class PersonnelManager : IPersonnelService
     {
         try
         {
-            await _personnelDal.InsertAsync(model);
+            var asd = ObjectId.GenerateNewId().ToString();
+            model.Id = asd;
+            await _personnelDal.Insert(model);
             return new BaseResponse<PersonnelModel>(model, true);
         }
         catch (Exception ex)
@@ -31,7 +34,7 @@ public class PersonnelManager : IPersonnelService
     {
         try
         {
-            await _personnelDal.UpdateAsync(model);
+            await _personnelDal.Update(model);
             return new BaseResponse<PersonnelModel>(model, true);
         }
         catch (Exception ex)
@@ -44,7 +47,7 @@ public class PersonnelManager : IPersonnelService
     {
         try
         {
-            var result = await _personnelDal.GetAllAsync();
+            var result = await _personnelDal.GetAll();
             return new BaseResponse<IEnumerable<PersonnelModel>>(result, true);
         }
         catch (Exception ex)
@@ -57,26 +60,13 @@ public class PersonnelManager : IPersonnelService
     {
         try
         {
-            var result = await _personnelDal.GetByIdAsync(id);
+            var result = await _personnelDal.GetById(id);
             return new BaseResponse<PersonnelModel>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
             return new BaseResponse<PersonnelModel>(new PersonnelModel(), false, ex.Message);
-        }
-    }
-    public async Task<BaseResponse> DeleteByIdAsync(string id)
-    {
-        try
-        {
-            await _personnelDal.DeleteByIdAsync(id);
-            return new BaseResponse(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse(false, ex.Message);
         }
     }
 }

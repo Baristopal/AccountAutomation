@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.4.15" />
+    <PackageReference Include="MongoDB.Driver" Version="2.24.0" />
   </ItemGroup>
 
   <ItemGroup>
