@@ -6,16 +6,11 @@ using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using DataAccess.Concrete;
 using Entities.Models;
-using Microsoft.AspNetCore.Authentication.Certificate;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Datadog.Logs;
 using Serilog.Sinks.SystemConsole.Themes;
-using System.Data;
-using System.Data.SqlClient;
 using System.Text;
 using WebUI.Services;
 using WebUI.Utilities.Helpers;
@@ -34,9 +29,19 @@ builder.Services.AddMudServices();
 
 builder.Services.AddCouchbase(opt =>
 {
-    opt.ConnectionString = "couchbase://localhost";
-    opt.UserName = "Administrator";
-    opt.Password = "Bb5b_FP8ve7s_K";
+    opt.ConnectionString = "couchbases://cb.butoerculhxhiieq.cloud.couchbase.com";
+    opt.UserName = "accountantautomation";
+    opt.Password = "Baristopal,02";
+    opt.Buckets = new List<string>
+    {
+        "Data"
+    };
+    opt.TracingOptions.Enabled = false;
+    opt.ThresholdOptions.Enabled = false;
+    opt.OrphanTracingOptions.Enabled = false;
+    opt.LoggingMeterOptions.Enabled(false);
+    opt.QueryTimeout = TimeSpan.FromSeconds(30);
+    opt.SearchTimeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddScoped<MessageboxHelper>();
 

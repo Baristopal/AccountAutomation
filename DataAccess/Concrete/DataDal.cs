@@ -19,7 +19,7 @@ public class DataDal : IDataDal
 
     public async Task<IEnumerable<DataModel>> GetAll()
     {
-        string query = "SELECT d.* FROM AccountAutomation._default.Data as d WHERE d.isDeleted = false ORDER BY DATE_FORMAT_STR(d.createDate, '1111-11-11T00:00:00Z')";
+        string query = "SELECT d.* FROM Data._default.Data as d WHERE d.isDeleted = false ORDER BY DATE_FORMAT_STR(d.createdDate, '1111-11-11T00:00:00Z')";
         var result = await _noSqlHelper.QueryAsync<DataModel>(query);
         return result;
     }

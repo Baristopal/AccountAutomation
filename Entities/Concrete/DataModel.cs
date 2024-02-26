@@ -3,7 +3,7 @@ using Library.Entities.Attributes;
 
 namespace Entities.Concrete;
 
-[NoSqlConfig("AccountAutomation","Data")]
+[NoSqlConfig("Data","Data")]
 public class DataModel : BaseEntity, IEntity
 {
     public int CompanyId { get; set; }

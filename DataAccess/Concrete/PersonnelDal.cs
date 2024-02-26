@@ -1,9 +1,6 @@
 ﻿using Core.Utilities;
-using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using Entities.Concrete;
-using Entities.Models;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace DataAccess.Concrete;
