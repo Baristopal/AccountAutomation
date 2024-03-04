@@ -1,0 +1,90 @@
+﻿@inject IDefinationService definationService
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="2">
+                <MudSelect T="string" Variant="Variant.Outlined" Label="İşlem" AnchorOrigin="Origin.BottomCenter" Dense=true Margin="Margin.Dense" @bind-Value="productTracking.ProcessType">
+                    <MudSelectItem Value="@("Üretime Giden")">Üretime Giden</MudSelectItem>
+                    <MudSelectItem Value="@("Üretimden Gelen")">Üretimden Gelen</MudSelectItem>
+                    <MudSelectItem Value="@("Fire")">Fire</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2">
+                <MudDatePicker Label="Üretime Gönderilen Tarih" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="productTracking.ProcessDate"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="2">
+                <MudDatePicker Label="Üretim Teslim Tarih" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="productTracking.DeliveryDate"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Fatura No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.InvoiceNumber"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Firma Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.CompanyName"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Description"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Stok/Masraf Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.StockName"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Stok Adet" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Quantity"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Birim Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Unit"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="KDV Tutar" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TaxAmount"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudSelect T="string" Variant="Variant.Outlined" Label="Döviz Birimi" AnchorOrigin="Origin.BottomCenter" Dense=true Margin="Margin.Dense" @bind-Value="productTracking.Currency">
+                    <MudSelectItem Value="@("TL")">TL</MudSelectItem>
+                    <MudSelectItem Value="@("USD")">USD</MudSelectItem>
+                    <MudSelectItem Value="@("EUR")">EUR</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Döviz İşlem Toplamı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.CurrencyTotalAmount"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="TL İşlem Toplamı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TLTotalAmount"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="İşlem Türü" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Process"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Tahmini Üretim" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.EstimatedQuantity"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Ürün Gramaj" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Grammage"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Gerçekleşen Üretim Adeti" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.ActualQuantity"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Fire Miktarı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.WasteQuantity"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudDatePicker Label="Üretimden Çıkış Tarihi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="productTracking.DicontinuationDate"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Gecikme Süresi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.DelayTime"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField Label="Üretimde Geçen Süre" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TimeInProduction"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField Label="Toplam Maliyet" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TotalCost"></MudNumericField>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public ProductTrackingModel productTracking { get; set; } = new();
+
+
+
+}

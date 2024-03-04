@@ -9,6 +9,10 @@ public class BaseResponse<T>
     public string Code { get; set; }
 
     [JsonConstructor]
+    public BaseResponse()
+    {
+
+    }
     public BaseResponse(T data, bool success)
     {
         Data = data;
@@ -28,6 +32,7 @@ public class BaseResponse<T>
     {
         Code = code;
     }
+    
 }
 
 

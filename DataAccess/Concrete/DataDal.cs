@@ -45,7 +45,7 @@ public class DataDal : IDataDal
                         ,d.currency
                         ,d.salesType
                         ,d.currencyTotalAmount
-                        FROM AccountAutomation._default.Data AS d 
+                        FROM Data._default.Data AS d 
                         WHERE d.isDeleted = FALSE
                         AND d.processType IN['ÖDEME','TAHSİLAT']
                         ORDER BY DATE_FORMAT_STR(d.createDate, '1111-11-11T00:00:00Z')";

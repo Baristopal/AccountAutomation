@@ -3,6 +3,7 @@ using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Business.Concrete;
 public class PayrollManager : IPayrollService
@@ -54,7 +55,7 @@ public class PayrollManager : IPayrollService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<PayrollModel>>(new List<PayrollModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<PayrollModel>>(null, false, ex.Message);
         }
     }
 
@@ -68,7 +69,7 @@ public class PayrollManager : IPayrollService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<PayrollModel>(new PayrollModel(), false, ex.Message);
+            return new BaseResponse<PayrollModel>(null, false, ex.Message);
         }
     }
 

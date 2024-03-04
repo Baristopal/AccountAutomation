@@ -1,0 +1,449 @@
+﻿@page "/Finance/MonthlyReport"
+@using WebUI.Components.Pages.Finance.Components
+
+
+@inject IDefinationService definationService
+@inject IDataService dataService
+@inject MessageboxHelper messageboxHelper
+@inject IDialogService dialogService
+
+<PageTitle>Aylık Rapor</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-4" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Aylık Rapor</MudText>
+    @if (panelIndex == 1)
+    {
+        <MudItem>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="CalculatingTax">KDV Eksiği Hesapla</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddTransferredTax">Devreden KDV Ekle</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="AddPaidTax">Ödenen KDV Ekle</MudButton>
+        </MudItem>
+    }
+</MudStack>
+
+<MudItem Class="pa-2">
+    <MudTabs @bind-ActivePanelIndex="panelIndex">
+        <MudTabPanel Text="Gider Tablosu">
+            <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+                <thead>
+                    <tr>
+                        <th>Masraf Malzemeleri</th>
+                        <th>Ocak</th>
+                        <th>Şubat</th>
+                        <th>Mart</th>
+                        <th>Nisan</th>
+                        <th>Mayıs</th>
+                        <th>Haziran</th>
+                        <th>Temmuz</th>
+                        <th>Ağustos</th>
+                        <th>Eylül</th>
+                        <th>Ekim</th>
+                        <th>Kasım</th>
+                        <th>Aralık</th>
+                        <th>Yıllık Toplam</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in expenseTypes.Where(s => s.IsStcoked == false))
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 1).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 2).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 3).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 4).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 5).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 6).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 7).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 8).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 9).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 10).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 11).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 12).Sum(s => s.TLTotalAmount)</td>
+                            <th>@Math.Round(datas.Where(s => s.ExpenseType.Contains(item.Name)).Sum(s => s.TLTotalAmount), 2)</th>
+                        </tr>
+                    }
+
+
+                    <tr>
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">Gider Toplam</MudText> </strong></td>
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains("SATIŞ") == false).Sum(s => s.TLTotalAmount), 2);
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
+                        }
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.IsStocked == false && s.ProcessType.Contains("SATIŞ") == false).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        </tr>
+
+                        <tr>
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">Satış Toplam</MudText> </strong></td>
+                            @for (int i = 1; i <= 12; i++)
+                        {
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ")).Sum(s => s.TLTotalAmount), 2);
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
+                        }
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+
+                        </tr>
+
+                        @foreach (var item in expenseTypes.Where(s => s.IsStcoked == true))
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 1).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 2).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 3).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 4).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 5).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 6).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 7).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 8).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 9).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 10).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 11).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 12).Sum(s => s.TLTotalAmount)</td>
+                            <th>@Math.Round(datas.Where(s => s.ExpenseType.Contains(item.Name)).Sum(s => s.TLTotalAmount), 2)</th>
+                        </tr>
+                    }
+
+                    <tr>
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">Stok Toplam</MudText></strong></td>
+                        @for (int i = 1; i <= 12; i++)
+                        {
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == true).Sum(s => s.TLTotalAmount), 2);
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
+                        }
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.IsStocked == true).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+
+                        </tr>
+                        <tr>
+
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">GR Satış</MudText></strong></td>
+
+                            @for (int i = 1; i <= 12; i++)
+                        {
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2);
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
+                        }
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        </tr>
+
+                        <tr>
+
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">GR Alış</MudText></strong></td>
+
+                            @for (int i = 1; i <= 12; i++)
+                        {
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2);
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
+                        }
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        </tr>
+
+                        <tr>
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText>Aylık Kar / Zarar</MudText></strong></td>
+                            @{
+                            decimal yearlyTotalAmount = 0;
+                            for (int i = 1; i <= 12; i++)
+                            {
+                                var totalAmount = (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ")).Sum(s => s.TLTotalAmount), 2) -
+                                Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains("SATIŞ") == false).Sum(s => s.TLTotalAmount), 2)) + (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2) - Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2));
+
+                                yearlyTotalAmount = +totalAmount;
+                                <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText>@totalAmount</MudText></strong> </td>
+                            }
+                            <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText>@yearlyTotalAmount</MudText></strong></td>
+                        }
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
+
+        </MudTabPanel>
+        <MudTabPanel Text="KDV Tablosu">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Ocak</th>
+                                <th>Şubat</th>
+                                <th>Mart</th>
+                                <th>Nisan</th>
+                                <th>Mayıs</th>
+                                <th>Haziran</th>
+                                <th>Temmuz</th>
+                                <th>Ağustos</th>
+                                <th>Eylül</th>
+                                <th>Ekim</th>
+                                <th>Kasım</th>
+                                <th>Aralık</th>
+                                <th>Yıllık Toplam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Satış KDV</td>
+                                @for (int i = 1; i <= 12; i++)
+                                {
+                                    var taxAmount = Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2);
+                                    <td>
+                                        @taxAmount
+                                    </td>
+                                }
+                                <td>@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ")).Sum(s => s.TaxAmount), 2)</td>
+                            </tr>
+                            <tr>
+                                <td>Alış KDV</td>
+                                @for (int i = 1; i <= 12; i++)
+                                {
+                                    var taxAmount = Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2);
+                                    <td>
+                                        @taxAmount
+                                    </td>
+                                }
+                                <td>@Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ")).Sum(s => s.TaxAmount), 2)</td>
+                            </tr>
+                            @if (transferredTax.Any())
+                            {
+                                <tr>
+                                    <td>Devreden KDV</td>
+                                    @for (int i = 1; i <= 12; i++)
+                                    {
+                                        var tax = transferredTax.FirstOrDefault(s => s.Key == i).Value;
+                                        <td>@tax</td>
+                                    }
+                                    <td></td>
+                                </tr>
+                            }
+                            @if (paidTax.Any())
+                            {
+                                <tr>
+                                    <td>Ödenen KDV</td>
+                                    @for (int i = 1; i <= 12; i++)
+                                    {
+                                        var tax = paidTax.FirstOrDefault(s => s.Key == i).Value;
+                                        <td>@tax</td>
+                                    }
+                                    <td>@Math.Round(paidTax.Values.Sum(), 2)</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td>KDV Eksiğimiz</td>
+                                @for (int i = 0; i < 12; i++)
+                                {
+                                    int index = i;
+                                    var item = calculatedTax.ElementAtOrDefault(index);
+
+                                    if (item == 0)
+                                    {
+                                        item = calculatedTax.LastOrDefault(s => s != 0);
+                                        <td>@item</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@item</td>
+
+                                    }
+                                }
+                            </tr>
+                        </tbody>
+                    </MudSimpleTable>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true Class="mt-3">
+                        <thead>
+                            <tr>
+                                <th colspan="4">
+                                    <MudText Align="Align.Center">KDV Durum Raporu</MudText>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th><MudText Align="Align.Center"> 2024 &nbsp;</MudText></th>
+                                <th>KDV Durumu</th>
+                                <th>%10 Fatura Eksiğimiz</th>
+                                <th>%20 Fatura Eksiğimiz</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < 12; i++)
+                            {
+                                int index = i;
+                                var item = calculatedTax.ElementAtOrDefault(index);
+                                <tr>
+                                    <td>@($"{index + 1}. Ay")</td>
+                                    <td>@item</td>
+                                    <td>
+                                        @(item < 0 ? "" : $"{(item * 100) / 10}")
+                                    </td>
+                                    <td>
+                                        @(item < 0 ? "" : $"{(item * 100) / 20}")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                </MudItem>
+                <MudItem xs="8">
+                    <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true Class="mt-3">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">
+                                    Ocak
+                                    Şubat
+                                    Mart
+                                </th>
+                                <th style="text-align:center">
+                                    Nisan
+                                    Mayıs
+                                    Haziran
+                                </th>
+                                <th style="text-align:center">
+                                    Temmuz
+                                    Ağustos
+                                    Eylül
+                                </th>
+                                <th style="text-align:center">
+                                    Ekim
+                                    Kasım
+                                    Aralık
+                                </th>
+                            </tr>
+                            <tr>
+                                @for (int i = 1; i <= 4; i++)
+                                {
+                                    int index = i;
+                                    <th style="text-align:center">
+                                        @($"{index}. Dönem")
+                                    </th>
+
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                @for (int i = 1; i <= 4; i++)
+                                {
+                                    int index = i;
+                                    var totalTaxAmount = datas.Where(s => s.ProcessType.Contains("ALIŞ")).Select(s => s.TaxAmount).ToList();
+                                    var totalAmount = datas.Where(s => s.IsStocked == false && s.ProcessType.Contains("SATIŞ")).Select(s => s.TLTotalAmount).ToList();
+                                    int takeItem = index * 3;
+                                    decimal amount = 0;
+
+                                    amount = totalTaxAmount.Take(takeItem).Sum() + totalAmount.Take(takeItem).Sum();
+                                    totalTaxAmount.RemoveRange(0, totalTaxAmount.Count > 2 ? 3 : totalTaxAmount.Count);
+                                    totalAmount.RemoveRange(0, totalAmount.Count > 2 ? 3 : totalAmount.Count);
+                                    <td>
+                                        @amount
+                                    </td>
+                                }
+                            </tr>
+                            <tr>
+                                <td>
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 1 && s.ProcessDate.Value.Month == 2 && s.ProcessDate.Value.Month == 3).Sum(s => s.TaxAmount), 2)
+                                </td>
+                                <td>
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 4 && s.ProcessDate.Value.Month == 5 && s.ProcessDate.Value.Month == 6).Sum(s => s.TaxAmount), 2)
+                                </td>
+                                <td>
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 7 && s.ProcessDate.Value.Month == 8 && s.ProcessDate.Value.Month == 9).Sum(s => s.TaxAmount), 2)
+                                </td>
+                                <td>
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 10 && s.ProcessDate.Value.Month == 11 && s.ProcessDate.Value.Month == 12).Sum(s => s.TaxAmount), 2)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </MudSimpleTable>
+                </MudItem>
+            </MudGrid>
+
+
+        </MudTabPanel>
+    </MudTabs>
+</MudItem>
+
+
+@code {
+    private bool isBusy = false;
+    private string bottomGrayColor = "border-bottom:solid 2pt #a5a5a5;";
+    private int panelIndex = 0;
+
+    private List<decimal> calculatedTax = new();
+    private List<DataModel> datas = new();
+    private List<ExpenseTypeModel> expenseTypes = new();
+
+    private IDictionary<int, decimal> transferredTax = new Dictionary<int, decimal>();
+    public IDictionary<int, decimal> paidTax = new Dictionary<int, decimal>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetExpenseTypes();
+        await GetDatas();
+        isBusy = false;
+    }
+
+
+    private async Task GetDatas()
+    {
+        datas = (await dataService.GetAllData()).Data.ToList();
+    }
+
+    private async Task GetExpenseTypes()
+    {
+        var result = await definationService.GetAll<ExpenseTypeModel>();
+        if (result.Success == false)
+        {
+            messageboxHelper.ShowSnackMessage(result.Message, Severity.Error);
+            return;
+        }
+
+        expenseTypes = result.Data.ToList();
+    }
+
+    private async void AddTransferredTax()
+    {
+        DialogParameters parameters = new();
+        parameters.Add("transferredTax", transferredTax);
+        var dialog = dialogService.Show<TransferredTax>("Devreden KDV", parameters, MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            var data = dialogResult.Data as IDictionary<int, decimal>;
+            transferredTax = data;
+            StateHasChanged();
+        }
+    }
+
+    private async void AddPaidTax()
+    {
+        DialogParameters parameters = new();
+        parameters.Add("paidTax", paidTax);
+        var dialog = dialogService.Show<PaidTax>("Ödenen KDV", parameters, MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            var data = dialogResult.Data as IDictionary<int, decimal>;
+            paidTax = data;
+            StateHasChanged();
+        }
+    }
+
+    private void CalculatingTax()
+    {
+        calculatedTax = new();
+        for (int i = 1; i <= 12; i++)
+        {
+            var amount = (transferredTax.FirstOrDefault(s => s.Key == i).Value +
+                            Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2) -
+                            Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2)) +
+                            paidTax.FirstOrDefault(s => s.Key == i).Value;
+
+            calculatedTax.Add(amount);
+        }
+    }
+}

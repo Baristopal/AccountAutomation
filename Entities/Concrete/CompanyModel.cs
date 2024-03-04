@@ -1,6 +1,8 @@
 ﻿using Entities.Abstract;
+using Library.Entities.Attributes;
 
 namespace Entities.Concrete;
+[NoSqlConfig("Data","Company")]
 public class CompanyModel : BaseEntity
 {
     public int CompanyId { get; set; }

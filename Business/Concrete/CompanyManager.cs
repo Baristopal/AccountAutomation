@@ -5,6 +5,7 @@ using Entities.Dto;
 using Entities.Models;
 using Library.Core.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Business.Concrete;
 public class CompanyManager : ICompanyService
@@ -53,7 +54,7 @@ public class CompanyManager : ICompanyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<CompanyModel>(model, false, ex.Message);
+            return new BaseResponse<CompanyModel>(null, false, ex.Message);
         }
 
     }
@@ -68,7 +69,7 @@ public class CompanyManager : ICompanyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<CompanyModel>>(new List<CompanyModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<CompanyModel>>(null, false, ex.Message);
         }
     }
 
@@ -82,7 +83,7 @@ public class CompanyManager : ICompanyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<CompanyModel>(new CompanyModel(), false, ex.Message);
+            return new BaseResponse<CompanyModel>(null, false, ex.Message);
         }
 
     }

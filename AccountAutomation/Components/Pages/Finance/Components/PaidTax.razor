@@ -1,0 +1,45 @@
+﻿@using System.Globalization
+
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            @for (int i = 1; i <= 12; i++)
+            {
+                int index = i;
+                var month = new DateTime(DateTime.Now.Year, index, DateTime.Now.Day).ToString("MMMM", CultureInfo.CurrentCulture);
+                var value = paidTax.ContainsKey(index) ? paidTax[index] : 0;
+                <MudItem xs="3">
+                    <MudTextField T="decimal" Variant="Variant.Outlined" Label="@month" Value="value" ValueChanged="@(s=> EditPaidTax(index, s))"></MudTextField>
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudItem Class="d-flex justify-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public IDictionary<int, decimal> paidTax { get; set; } = new Dictionary<int, decimal>();
+
+    private void EditPaidTax(int index, decimal amount)
+    {
+        if (paidTax.ContainsKey(index))
+        {
+            paidTax[index] = amount;
+        }
+        else
+        {
+            paidTax.Add(index, amount);
+        }
+    }
+
+    private void Submit() => MudDialog.Close(paidTax);
+}

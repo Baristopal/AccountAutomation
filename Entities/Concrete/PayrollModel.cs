@@ -1,6 +1,8 @@
 ﻿using Entities.Abstract;
+using Library.Entities.Attributes;
 
 namespace Entities.Concrete;
+[NoSqlConfig("Data", "Payroll")]
 public class PayrollModel : BaseEntity
 {
     public int StaffId { get; set; }

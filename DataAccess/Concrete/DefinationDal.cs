@@ -26,8 +26,8 @@ public class DefinationDal : IDefinationDal
     {
         Type type = typeof(T);
         var model = Activator.CreateInstance(type);
-        var asd = model?.GetType()?.CustomAttributes?.FirstOrDefault()?.ConstructorArguments?.LastOrDefault().Value?.ToString();
-        string query = $"SELECT c.* FROM AccountAutomation._default.{asd} as c WHERE c.isDeleted = false ORDER BY c.createdDate DESC";
+        var collection = model?.GetType()?.CustomAttributes?.FirstOrDefault()?.ConstructorArguments?.LastOrDefault().Value?.ToString();
+        string query = $"SELECT c.* FROM Data._default.{collection} as c WHERE c.isDeleted = false ORDER BY c.createdDate";
         var result = await _noSqlHelper.QueryAsync<T>(query);
         return result;
     }

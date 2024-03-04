@@ -2,9 +2,9 @@
 using Library.Entities.Attributes;
 
 namespace Entities.Concrete;
-[NoSqlConfig("Data","ProcessTypes")]
-public class ProcessTypeModel : BaseEntity
+[NoSqlConfig("Data", "ExpenseTypes")]
+public class ExpenseTypeModel : BaseEntity
 {
-    public string Code { get; set; }
     public string Name { get; set; }
+    public bool IsStcoked { get; set; } = false;
 }

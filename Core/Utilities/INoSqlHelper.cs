@@ -7,4 +7,5 @@ public interface INoSqlHelper
     Task InsertAsync<T>(string dataId, T data);
     Task UpdateAsync<T>(string dataId, T data);
     Task<bool> ExecuteAsyncV2(string query);
+    Task<T> SingleOrDefaultAsync<T>(string query);
 }

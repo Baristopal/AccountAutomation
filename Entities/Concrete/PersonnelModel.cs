@@ -2,7 +2,7 @@
 using Library.Entities.Attributes;
 
 namespace Entities.Concrete;
-[NoSqlConfig("AccountAutomation", "Personnel")]
+[NoSqlConfig("Data", "Personnel")]
 public class PersonnelModel :BaseEntity
 {
     public int StaffId { get; set; }

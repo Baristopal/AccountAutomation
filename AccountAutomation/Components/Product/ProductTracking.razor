@@ -1,0 +1,119 @@
+﻿@page "/ProductTracking"
+
+@using Business.Concrete
+@using WebUI.Components.Product.Components
+
+
+@inject IProductTrackingService productTrackingService
+@inject MessageboxHelper messageboxHelper
+@inject IDialogService dialogService
+
+<PageTitle>Üretim Takip</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-4" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Üretim Takip</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(()=> EditProductTracking(new ProductTrackingModel()))">Ekle</MudButton>
+</MudStack>
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+            <thead>
+                <tr>
+                    <th>İşlem</th>
+                    <th>Üretime Gönderilen Tarih</th>
+                    <th>Üretime Teslim Tarihi</th>
+                    <th>Fatura No</th>
+                    <th>Firma Adı</th>
+                    <th>Açıklama</th>
+                    <th>Stok/Masraf Adı</th>
+                    <th>Stok Adet</th>
+                    <th>Birim Adı</th>
+                    <th>KDV Tutar</th>
+                    <th>Döviz Birim</th>
+                    <th>Döviz İşlem Toplamı</th>
+                    <th>TL İşlem Toplamı</th>
+                    <th>İşlem Türü</th>
+                    <th>Tahmini Üretim</th>
+                    <th>Ürün Gramaj</th>
+                    <th>Gerçekleşen Üretim Adeti</th>
+                    <th>Fire Miktarı</th>
+                    <th>Üretimden Çıkış Tarihi</th>
+                    <th>Gecikme Süresi</th>
+                    <th>Üretimde Geçen Süre</th>
+                    <th>Toplam Maliyet</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < productTrackings.Count; i++)
+                {
+                    int index = i;
+                    var item = productTrackings[index];
+                    <tr>
+                        <td>@item.ProcessType</td>
+                        <td>@item.ProcessDate</td>
+                        <td>@item.DeliveryDate</td>
+                        <td>@item.InvoiceNumber</td>
+                        <td>@item.CompanyName</td>
+                        <td>@item.Description</td>
+                        <td>@item.StockName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Unit</td>
+                        <td>@item.TaxAmount</td>
+                        <td>@item.Currency</td>
+                        <td>@item.CurrencyTotalAmount</td>
+                        <td>
+                            @item.TLTotalAmount
+                        </td>
+                        <td>@item.Process</td>
+                        <td>@item.EstimatedQuantity</td>
+                        <td>@item.Grammage</td>
+                        <td>@item.ActualQuantity</td>
+                        <td>@item.WasteQuantity</td>
+                        <td>@item.DicontinuationDate</td>
+                        <td>@item.DelayTime</td>
+                        <td>@item.TimeInProduction</td>
+                        <td>@item.UnitCost</td>
+                        <td>@item.TotalCost</td>
+
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    private bool isBusy = false;
+
+    private List<ProductTrackingModel> productTrackings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetAllProductTracking();
+        isBusy = false;
+    }
+
+    private async Task GetAllProductTracking()
+    {
+        var result = await productTrackingService.GetAllProductTracking();
+        if (result.Success)
+            productTrackings = result.Data.ToList();
+        else
+            messageboxHelper.ShowSnackMessage(result.Message, Severity.Error);
+    }
+
+    private async void EditProductTracking(ProductTrackingModel model)
+    {
+        DialogParameters parameters = new();
+        parameters.Add("productTracking", model);
+        var dialog = dialogService.Show<EditProductTracking>("Üretim Takip Ekle/Güncelle", parameters, MudHelper.MudDialogHelper.DialogOptionsLarge);
+        var dialogResult = await dialog.Result;
+    }
+}

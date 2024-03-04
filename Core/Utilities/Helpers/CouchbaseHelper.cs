@@ -68,4 +68,12 @@ public class CouchbaseHelper : INoSqlHelper
 
         return result.MetaData.Metrics.MutationCount > 0;
     }
+
+    public async Task<T> SingleOrDefaultAsync<T>(string query)
+    {
+        var cluster = await _clusterProvider.GetClusterAsync();
+        var result = await cluster.QueryAsync<T>(query);
+
+        return await result.FirstOrDefaultAsync().ConfigureAwait(false);
+    }
 }

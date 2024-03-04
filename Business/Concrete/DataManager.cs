@@ -3,6 +3,7 @@ using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Business.Concrete;
 public class DataManager : IDataService
@@ -68,7 +69,7 @@ public class DataManager : IDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<DataModel>(new DataModel(), false, ex.Message);
+            return new BaseResponse<DataModel>(null, false, ex.Message);
         }
     }
 
@@ -82,7 +83,7 @@ public class DataManager : IDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<CaseModel>>(new List<CaseModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<CaseModel>>(null, false, ex.Message);
         }
     }
 }

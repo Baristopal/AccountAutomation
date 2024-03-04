@@ -1,0 +1,45 @@
+﻿@using System.Globalization
+
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            @for (int i = 1; i <= 12; i++)
+            {
+                int index = i;
+                var month = new DateTime(DateTime.Now.Year, index, DateTime.Now.Day).ToString("MMMM", CultureInfo.CurrentCulture);
+                var value = transferredTax.ContainsKey(index) ? transferredTax[index] : 0;
+                <MudItem xs="3">
+                    <MudTextField T="decimal" Variant="Variant.Outlined" Label="@month" Value="value" ValueChanged="@(s=> EditTransferredTax(index, s))"></MudTextField>
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudItem Class="d-flex justify-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public IDictionary<int, decimal> transferredTax { get; set; } = new Dictionary<int, decimal>();
+
+    private void EditTransferredTax(int index, decimal amount)
+    {
+        if (transferredTax.ContainsKey(index))
+        {
+            transferredTax[index] = amount;
+        }
+        else
+        {
+            transferredTax.Add(index, amount);
+        }
+    }
+
+    private void Submit() => MudDialog.Close(transferredTax);
+}

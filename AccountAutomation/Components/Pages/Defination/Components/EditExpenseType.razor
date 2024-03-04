@@ -1,0 +1,73 @@
+﻿@using Business.Enums
+@using Entities.Models
+
+@inject IDefinationService definationService
+@inject MessageboxHelper messageboxHelper
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="6">
+                <MudTextField T="string" Label="Masraf/Stok tipi giriniz" Variant="Variant.Outlined" @bind-Value="@expenseType.Name" OnKeyUp="IsEnter"></MudTextField>
+            </MudItem>
+            <MudItem xs="6" Class="d-flex justify-end">
+                <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="expenseType.IsStcoked" Label="Stoklu Mal" LabelPosition="LabelPosition.Start"></MudCheckBox>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public ExpenseTypeModel expenseType { get; set; } = new();
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+    private bool isBusy = false;
+    private string turkishStatus;
+
+    async Task IsEnter(KeyboardEventArgs args)
+    {
+        if (args.IsEnter() == true)
+        {
+            await Submit();
+        }
+    }
+
+    private async Task Submit()
+    {
+        isBusy = true;
+        var result = new BaseResponse<ExpenseTypeModel>();
+
+        if (turkishStatus is not null)
+            expenseType.Name = turkishStatus;
+
+        if (isNew)
+            result = await definationService.Add(expenseType.Id, expenseType);
+        else
+            result = await definationService.Update(expenseType.Id, expenseType);
+
+        if (result.Success)
+        {
+            messageboxHelper.ShowSuccessSnackMessage();
+            MudDialog.Close(expenseType);
+        }
+        else
+            messageboxHelper.ShowSnackMessage("Stok/Masraf Tipi Eklenemedi", Severity.Error);
+
+        isBusy = true;
+    }
+
+}

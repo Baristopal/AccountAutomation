@@ -6,34 +6,34 @@ using MongoDB.Driver;
 namespace DataAccess.Concrete;
 public class PersonnelDal : IPersonnelDal
 {
-    private readonly IMongoDbHelper _mongoDbHelper;
+    private readonly INoSqlHelper _nosqlHelper;
 
-    public PersonnelDal(IMongoDbHelper mongoDbHelper)
+    public PersonnelDal(INoSqlHelper noSqlHelper)
     {
-        _mongoDbHelper = mongoDbHelper;
+        _nosqlHelper = noSqlHelper;
     }
 
-    public async Task<List<PersonnelModel>> GetAll()
+    public async Task<IEnumerable<PersonnelModel>> GetAll()
     {
-        var filter = Builders<PersonnelModel>.Filter.Eq(p => p.IsDeleted, false);
-        var result = await _mongoDbHelper.GetAllAsync(filter);
+        string query = "SELECT p.* FROM Data._default.Personnel as p WHERE p.isDeleted = false ORDER BY p.createdDate DESC";
+        var result = await _nosqlHelper.QueryAsync<PersonnelModel>(query);
         return result;
     }
 
     public async Task<PersonnelModel> GetById(string id)
     {
-        var result = await _mongoDbHelper.GetByIdAsync<PersonnelModel>(id);
+        var result = await _nosqlHelper.GetByIdAsync<PersonnelModel>(id);
         return result;
     }
 
     public async Task Insert(PersonnelModel model)
     {
-        await _mongoDbHelper.InsertAsync(model);
+        await _nosqlHelper.InsertAsync(model.Id,model);
     }
 
     public async Task Update(PersonnelModel model)
     {
-        await _mongoDbHelper.UpdateAsync(model);
+        await _nosqlHelper.UpdateAsync(model.Id,model);
     }
 
 }

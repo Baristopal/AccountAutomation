@@ -3,9 +3,13 @@
 @using Entities.Dto
 
 @inject IDataService dataService
+@inject IDefinationService definationService
 
 <PageTitle>Veri Girişi</PageTitle>
-<MudOverlay Visible="@isBusy"></MudOverlay>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
 
 <MudStack Class="mb-2 pa-4" Row=true Justify="Justify.SpaceBetween">
     <MudItem Style="width:105px;">
@@ -76,32 +80,10 @@
         <MudGrid Class="pa-4" Spacing="1">
             <MudItem xs="2">
                 <MudSelect T="string" Label="Masraf Adı" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true ValueChanged="@(s=>AddOrUpdateExpenseType(s,index))">
-                    <MudSelectItem Value="@("AVUKATLIK GİDERİ")">AVUKATLIK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("CEZALAR")">CEZALAR</MudSelectItem>
-                    <MudSelectItem Value="@("DOĞALGAZ GİDERİ")">DOĞALGAZ GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("ELEKTRİK GİDERİ")">ELEKTRİK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("FASON HİZMET GİDERİ")">FASON HİZMET GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("İNTERNET GİDERİ")">İNTERNET GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("KASKO GİDERİ")">KASKO GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("KIRTASİYE GİDERİ")">KIRTASİYE GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("KİRA GİDERİ")">KİRA GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("KOMİSYON GİDERİ")">KOMİSYON GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("LABORATUVAR GİDERİ")">LABORATUVAR GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("MUTFAK GİDERİ")">MUTFAK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("MÜŞAVİRLİK GİDERİ")">MÜŞAVİRLİK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("OFİS GİDERİ")">OFİS GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("PERSONEL GİDERİ")">PERSONEL GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("REKLAMASYON GİDERİ")">REKLAMASYON GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("SAĞLIK GİDERİ")">SAĞLIK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("SEYAHAT GİDERİ")">SEYAHAT GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("SGK GİDERİ")">SGK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("SU GİDERİ")">SU GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("TELEFON GİDERİ")">TELEFON GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("TEMİZLİK GİDERİ")">TEMİZLİK GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("VERGİ GİDERİ")">VERGİ GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("YAKIT GİDERİ")">YAKIT GİDERİ</MudSelectItem>
-                    <MudSelectItem Value="@("YARDIMCI MALZEMELER")">YARDIMCI MALZEMELER</MudSelectItem>
-                    <MudSelectItem Value="@("YEMEK GİDERİ")">YEMEK GİDERİ</MudSelectItem>
+                    @foreach (var type in expenseTypes)
+                    {
+                        <MudSelectItem Value="@type.Name">@type.Name</MudSelectItem>
+                    }
                 </MudSelect>
             </MudItem>
             <MudItem xs="1">
@@ -153,9 +135,18 @@
     }
 
     private List<DataEntryDto> dataEntries = new();
+    private List<ExpenseTypeModel> expenseTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        expenseTypes = (await definationService.GetAll<ExpenseTypeModel>()).Data.ToList();
+        isBusy = false;
+    }
 
     private async Task Submit()
     {
+        isBusy = true;
         foreach (var dataEntry in dataEntries)
         {
             data.ExpenseType = dataEntry.ExpenseType;
@@ -181,6 +172,7 @@
 
         }
 
+        isBusy = false;
     }
 
     #region Ekleme Güncelleme Methodları

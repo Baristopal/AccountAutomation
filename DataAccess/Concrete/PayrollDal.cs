@@ -1,43 +1,46 @@
-﻿using Couchbase;
+﻿using Core.Utilities;
+using Couchbase;
 using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using Entities.Concrete;
 
 namespace DataAccess.Concrete;
-public class PayrollDal(IClusterProvider clusterProvider) : IPayrollDal
+public class PayrollDal : IPayrollDal
 {
+
+    private readonly INoSqlHelper _noSqlHelper;
+
+    public PayrollDal(INoSqlHelper noSqlHelper)
+    {
+        _noSqlHelper = noSqlHelper;
+    }
+
     public async Task InsertAsync(PayrollModel model)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var bucket = await cluster.BucketAsync("AccountAutomation");
-        _ = await bucket.Collection("Payroll").InsertAsync(model.Id, model);
+        await _noSqlHelper.InsertAsync(model.Id, model);
     }
 
     public async Task UpdateAsync(PayrollModel model)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var bucket = await cluster.BucketAsync("AccountAutomation");
-        _ = await bucket.Collection("Payroll").ReplaceAsync(model.Id, model);
+        await _noSqlHelper.UpdateAsync(model.Id, model);
     }
 
     public async Task<IEnumerable<PayrollModel>> GetAllAsync()
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var result = await cluster.QueryAsync<PayrollModel>("SELECT p.* FROM AccountAutomation._default.Payroll as p WHERE p.isDeleted = false ORDER BY p.createdDate DESC");
-        return await result.ToListAsync();
+        string query = "SELECT p.* FROM Data._default.Payroll as p WHERE p.isDeleted = false ORDER BY p.createdDate DESC";
+        var result = await _noSqlHelper.QueryAsync<PayrollModel>(query);
+        return result;
     }
 
     public async Task<PayrollModel> GetByIdAsync(string id)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        var bucket = await cluster.BucketAsync("AccountAutomation");
-        var result = await bucket.Collection("Payroll").GetAsync(id);
-        return result.ContentAs<PayrollModel>()!;
+        var result = await _noSqlHelper.GetByIdAsync<PayrollModel>(id);
+        return result;
     }
 
     public async Task DeleteByIdAsync(string id)
     {
-        var cluster = await clusterProvider.GetClusterAsync();
-        await cluster.QueryAsync<bool>($"UPDATE AccountAutomation._default.Payroll as p SET p.isDeleted = true WHERE p.isDeleted = false AND p.id = {id}");
+        string query = $"UPDATE Data._default.Payroll as p SET p.isDeleted = true WHERE p.isDeleted = false AND p.id = {id}";
+        await _noSqlHelper.ExecuteAsyncV2(query);
     }
 }
