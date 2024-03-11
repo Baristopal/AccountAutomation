@@ -20,8 +20,8 @@
 </MudStack>
 
 <MudGrid>
-    <MudItem xs="12">
-        <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+    <MudItem xs="12" Class="pa-3">
+        <MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true Style="overflow:hidden">
             <thead>
                 <tr>
                     <th>İşlem</th>
@@ -30,7 +30,7 @@
                     <th>Fatura No</th>
                     <th>Firma Adı</th>
                     <th>Açıklama</th>
-                    <th>Stok/Masraf Adı</th>
+                    <th>Stok Adı</th>
                     <th>Stok Adet</th>
                     <th>Birim Adı</th>
                     <th>KDV Tutar</th>
@@ -111,9 +111,25 @@
 
     private async void EditProductTracking(ProductTrackingModel model)
     {
+        bool isNew = false;
+        if (string.IsNullOrEmpty(model.ProcessType))
+            isNew = true;
+
+
         DialogParameters parameters = new();
         parameters.Add("productTracking", model);
+        parameters.Add("isNew", isNew);
         var dialog = dialogService.Show<EditProductTracking>("Üretim Takip Ekle/Güncelle", parameters, MudHelper.MudDialogHelper.DialogOptionsLarge);
         var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            if (isNew == true)
+            {
+                var data = dialogResult.Data as ProductTrackingModel;
+                productTrackings.Add(data);
+            }
+            else
+                await GetAllProductTracking();
+        }
     }
 }

@@ -10,4 +10,5 @@ public interface IDataService
     Task<BaseResponse<DataModel>> UpdateData(DataModel model);
     Task<BaseResponse<DataModel>> GetDataById(string id);
     Task<BaseResponse<IEnumerable<CaseModel>>> GetCase();
+    Task<BaseResponse<IEnumerable<DataModel>>> GetAllDataWithStockExpenses();
 }

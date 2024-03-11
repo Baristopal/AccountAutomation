@@ -99,6 +99,10 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<MessageboxHelper>();
 builder.Services.AddScoped<IProductTrackingDal, ProductTrackingDal>();
 builder.Services.AddScoped<IProductTrackingService, ProductTrackingManager>();
+builder.Services.AddScoped<ICheckDal, CheckDal>();
+builder.Services.AddScoped<ICheckService, CheckManager>();
+builder.Services.AddScoped<IInstantDal, InstantDal>();
+builder.Services.AddScoped<IInstantService, InstantManager>();
 
 
 var culture = new CultureInfo("tr-TR", true);

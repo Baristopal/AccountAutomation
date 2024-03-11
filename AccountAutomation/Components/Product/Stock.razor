@@ -1,0 +1,154 @@
+﻿@page "/stock"
+
+@inject IDefinationService definationService
+@inject IDataService dataService
+@inject IProductTrackingService productTrackingService
+
+<PageTitle>Stok</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-4" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Stok</MudText>
+</MudStack>
+
+
+
+<MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+    <thead>
+        <tr>
+            <th>Stok Adı</th>
+            <th>Stok Birim</th>
+            <th>Alış Stok Adet</th>
+            <th>TL Maliyet BR. Fiyat</th>
+            <th>TL Maliyet Tutar</th>
+            <th>Stok Satış Oranı</th>
+            <th>Satış Stok Adet</th>
+            <th>TL Satış Ortalama BR. Fiyat</th>
+            <th>TL Satış Tutar</th>
+            <th>Birim Kar Oranı</th>
+            <th>Üretime Giden</th>
+            <th>Üretimden Gelen</th>
+            <th>Fire</th>
+            <th>Kalan Stok</th>
+            <th>Kalan Stok Maliyet TL Tutar</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < expenseTypes.Count; i++)
+        {
+            int index = i;
+            var item = expenseTypes[index];
+            decimal sellingAmount = 0;
+            decimal amount = 0;
+            int remainingStock = 0;
+            decimal unitAmount = 0;
+            <tr>
+                <td>@item.Name</td>
+                <td>ADET</td>
+                <td>@datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
+                <td>
+                    @{
+                        unitAmount = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount) / datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                    }
+                    @unitAmount
+                </td>
+                <td>@datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
+                <td>@(datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock) / datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock))</td>
+                <td>@datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
+                <td>
+                    @{
+                        var salesAmount = datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount);
+                        var salesStock = datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        if (salesAmount != 0 && salesStock != 0)
+                            sellingAmount = salesAmount / salesStock;
+                    }
+                    @sellingAmount
+                </td>
+                <td>@datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
+                <td>
+                    @{
+                        if (datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock) > 0)
+                        {
+
+                            var buyedAmount = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount);
+                            var buyedStock = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                            if (buyedAmount != 0 && buyedStock != 0)
+                                amount = ((buyedAmount / buyedStock) / sellingAmount);
+                        }
+                    }
+                    @amount
+                </td>
+                <td>@productTrackings.Where(s => s.ProcessType == "Üretime Giden" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
+                <td>@productTrackings.Where(s => s.ProcessType == "Üretimden Gelen" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
+                <td>@productTrackings.Where(s => s.ProcessType == "Fire" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
+                <td>
+                    @{
+                        var buyedStockQuantity = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        var salesStockQuantity = datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        var productionStockQuantity = productTrackings.Where(s => s.ProcessType == "Üretime Giden" && s.StockName == item.Name).Sum(a => a.Quantity);
+                        remainingStock = (buyedStockQuantity - salesStockQuantity) - productionStockQuantity;
+                    }
+                    @remainingStock
+                </td>
+                <td>
+                    @{
+                        decimal remainingStockUnitAmount = 0;
+                        if (unitAmount == 0)
+                            remainingStockUnitAmount = remainingStock * sellingAmount;
+                        else
+                            remainingStockUnitAmount = unitAmount * remainingStock;
+                    }
+                    @remainingStockUnitAmount
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+
+@code {
+
+    private bool isBusy = false;
+
+    private List<ExpenseTypeModel> expenseTypes = new();
+    private List<DataModel> datas = new();
+    private List<ProductTrackingModel> productTrackings = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetAllExpenses();
+        await GetAllDatas();
+        isBusy = false;
+    }
+
+    private async Task GetAllDatas()
+    {
+        var result = await dataService.GetAllDataWithStockExpenses();
+        if (result.Success)
+            datas = result.Data.ToList();
+        else
+            return;
+    }
+
+    private async Task GetAllExpenses()
+    {
+        var result = await definationService.GetAllStockExpenses();
+        if (result.Success)
+            expenseTypes = result.Data.ToList();
+        else
+            return;
+    }
+
+    private async Task GetAllProductTracking()
+    {
+        var result = await productTrackingService.GetAllProductTrackingWithStockName();
+        if (result.Success)
+            productTrackings = result.Data.ToList();
+        else
+            return;
+    }
+}

@@ -1,5 +1,6 @@
 ﻿@page "/data/data-entry"
 @using Business.Enums
+@using Core.Utilities.Helpers
 @using Entities.Dto
 
 @inject IDataService dataService
@@ -38,16 +39,10 @@
     <MudGrid Class="pa-4" Spacing="1">
         <MudItem xs="2">
             <MudSelect T="string" Label="İşlem Tipi" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true @bind-Value="data.ProcessType">
-                <MudSelectItem Value="@("ALIŞ")">ALIŞ</MudSelectItem>
-                <MudSelectItem Value="@("SATIŞ")">SATIŞ</MudSelectItem>
-                <MudSelectItem Value="@("TAHSİLAT")">TAHSİLAT</MudSelectItem>
-                <MudSelectItem Value="@("ÖDEME")">ÖDEME</MudSelectItem>
-                <MudSelectItem Value="@("ALIŞ İADE")">ALIŞ İADE</MudSelectItem>
-                <MudSelectItem Value="@("SATIŞ İADE")">SATIŞ İADE</MudSelectItem>
-                <MudSelectItem Value="@("ÜRETİME GİDEN")">ÜRETİME GİDEN</MudSelectItem>
-                <MudSelectItem Value="@("FİRE")">FİRE</MudSelectItem>
-                <MudSelectItem Value="@("İRSALİYE")">İRSALİYE</MudSelectItem>
-                <MudSelectItem Value="@("İRSALİYE")">İRSALİYE</MudSelectItem>
+                @foreach (var item in EnumHelper<ProcessTypeEnum>.GetNamesAndDisplayNames(typeof(ProcessTypeEnum)))
+                {
+                    <MudSelectItem Value="@item.Key">@item.Value</MudSelectItem>
+                }
             </MudSelect>
         </MudItem>
         <MudItem xs="2">
@@ -58,12 +53,10 @@
         </MudItem>
         <MudItem xs="2">
             <MudSelect T="string" Label="İşlem Türü" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true @bind-Value="data.SalesType">
-                <MudSelectItem Value="@("NAKİT")">NAKİT</MudSelectItem>
-                <MudSelectItem Value="@("USDNAKİT")">USD NAKİT</MudSelectItem>
-                <MudSelectItem Value="@("BANKA")">BANKA</MudSelectItem>
-                <MudSelectItem Value="@("KREDİ KARTI")">KREDİ KARTI</MudSelectItem>
-                <MudSelectItem Value="@("CARİ")">CARİ</MudSelectItem>
-                <MudSelectItem Value="@("ÇEK/SENET")">ÇEK/SENET</MudSelectItem>
+                @foreach (var item in EnumHelper<PurchaseTypeEnum>.GetNamesAndDisplayNames(typeof(PurchaseTypeEnum)))
+                {
+                    <MudSelectItem Value="@item.Key">@item.Value</MudSelectItem>
+                }
             </MudSelect>
         </MudItem>
         <MudItem xs="2">
@@ -91,10 +84,10 @@
             </MudItem>
             <MudItem xs="1">
                 <MudSelect T="string" Label="Birim" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true ValueChanged="@(s=>AddOrUpdateUnit(s,index))">
-                    <MudSelectItem Value="@("ADET")">ADET</MudSelectItem>
-                    <MudSelectItem Value="@("KG")">KG</MudSelectItem>
-                    <MudSelectItem Value="@("METRE")">METRE</MudSelectItem>
-                    <MudSelectItem Value="@("KOLİ")">KOLİ</MudSelectItem>
+                    @foreach (var item in EnumHelper<UnitEnum>.GetNamesAndDisplayNames(typeof(UnitEnum)))
+                    {
+                        <MudSelectItem Value="@item.Key">@item.Value</MudSelectItem>
+                    }
                 </MudSelect>
             </MudItem>
             <MudItem xs="2">
@@ -102,9 +95,10 @@
             </MudItem>
             <MudItem xs="2">
                 <MudSelect T="string" Label="Döviz Birimi" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true ValueChanged="@(s=>AddOrUpdateCurrency(s,index))">
-                    <MudSelectItem Value="@("TL")">TL</MudSelectItem>
-                    <MudSelectItem Value="@("USD")">USD</MudSelectItem>
-                    <MudSelectItem Value="@("EUR")">EUR</MudSelectItem>
+                    @foreach (var item in Enum.GetNames(typeof(CurrencyEnum)))
+                    {
+                        <MudSelectItem Value="@item">@item</MudSelectItem>
+                    }
                 </MudSelect>
             </MudItem>
             <MudItem xs="2">

@@ -86,4 +86,18 @@ public class DataManager : IDataService
             return new BaseResponse<IEnumerable<CaseModel>>(null, false, ex.Message);
         }
     }
+
+    public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllDataWithStockExpenses()
+    {
+        try
+        {
+            var result = await _dataDal.GetAllDataWithStockExpenses();
+            return new BaseResponse<IEnumerable<DataModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>(new List<DataModel>(), false, ex.Message);
+        }
+    }
 }

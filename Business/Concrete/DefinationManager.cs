@@ -1,5 +1,6 @@
 ﻿using Business.Abstract;
 using DataAccess.Abstract;
+using Entities.Concrete;
 using Entities.Models;
 using Microsoft.Extensions.Logging;
 
@@ -72,4 +73,17 @@ public class DefinationManager : IDefinationService
 
     }
 
+    public async Task<BaseResponse<IEnumerable<ExpenseTypeModel>>> GetAllStockExpenses()
+    {
+        try
+        {
+            var result = await _definationDal.GetAllStockExpenses();
+            return new BaseResponse<IEnumerable<ExpenseTypeModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<ExpenseTypeModel>>(false, ex.Message);
+        }
+    }
 }

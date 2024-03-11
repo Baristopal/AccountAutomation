@@ -1,20 +1,31 @@
-﻿@inject IDefinationService definationService
+﻿@using Business.Concrete
+@using Business.Enums
 
-<MudDialog>
+@inject IProductTrackingService productTrackingService
+@inject MessageboxHelper messageboxHelper
+@inject IDefinationService definationService
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+
+
+<MudDialog Style="overflow:hidden">
     <DialogContent>
         <MudGrid>
             <MudItem xs="2">
                 <MudSelect T="string" Variant="Variant.Outlined" Label="İşlem" AnchorOrigin="Origin.BottomCenter" Dense=true Margin="Margin.Dense" @bind-Value="productTracking.ProcessType">
-                    <MudSelectItem Value="@("Üretime Giden")">Üretime Giden</MudSelectItem>
-                    <MudSelectItem Value="@("Üretimden Gelen")">Üretimden Gelen</MudSelectItem>
-                    <MudSelectItem Value="@("Fire")">Fire</MudSelectItem>
+                    <MudSelectItem Value="@("PRODUCTION")">Üretime Giden</MudSelectItem>
+                    <MudSelectItem Value="@("FINISHED_PRODUCTION")">Üretimden Gelen</MudSelectItem>
+                    <MudSelectItem Value="@("WASTE")">Fire</MudSelectItem>
                 </MudSelect>
             </MudItem>
             <MudItem xs="2">
-                <MudDatePicker Label="Üretime Gönderilen Tarih" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="productTracking.ProcessDate"></MudDatePicker>
+                <MudDatePicker Label="Üretime Gönderilen Tarih" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Date="productTracking.ProcessDate" Margin="Margin.Dense" DateChanged="@(s=> CalculateDelayTimeAndProducttionDate(DateTime.MinValue,DateTime.MinValue, s))"></MudDatePicker>
             </MudItem>
             <MudItem xs="2">
-                <MudDatePicker Label="Üretim Teslim Tarih" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="productTracking.DeliveryDate"></MudDatePicker>
+                <MudDatePicker Label="Üretim Teslim Tarih" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" Date="productTracking.DeliveryDate" DateChanged="@(s=> CalculateDelayTimeAndProducttionDate(s,DateTime.MinValue,DateTime.MinValue))"></MudDatePicker>
             </MudItem>
             <MudItem xs="2">
                 <MudTextField Label="Fatura No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.InvoiceNumber"></MudTextField>
@@ -26,65 +37,182 @@
                 <MudTextField Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Description"></MudTextField>
             </MudItem>
             <MudItem xs="2">
-                <MudTextField Label="Stok/Masraf Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.StockName"></MudTextField>
+                <MudSelect T="string" Label="Stok Adı" Variant="Variant.Outlined" Margin="Margin.Dense" Dense=true AnchorOrigin="Origin.BottomCenter" @bind-Value="productTracking.StockName">
+                    @foreach (var item in expenseTypes)
+                    {
+                        <MudSelectItem Value="item.Name">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="Stok Adet" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Quantity"></MudNumericField>
+                <MudNumericField Label="Stok Adet" T="int" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" ValueChanged="@(s=> CalculateEstimatedQuantity(s, 0))"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
                 <MudTextField Label="Birim Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Unit"></MudTextField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="KDV Tutar" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TaxAmount"></MudNumericField>
+                <MudNumericField Label="KDV Tutar" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="productTracking.TaxAmount"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
                 <MudSelect T="string" Variant="Variant.Outlined" Label="Döviz Birimi" AnchorOrigin="Origin.BottomCenter" Dense=true Margin="Margin.Dense" @bind-Value="productTracking.Currency">
-                    <MudSelectItem Value="@("TL")">TL</MudSelectItem>
-                    <MudSelectItem Value="@("USD")">USD</MudSelectItem>
-                    <MudSelectItem Value="@("EUR")">EUR</MudSelectItem>
+                    @foreach (var item in Enum.GetNames(typeof(CurrencyEnum)))
+                    {
+                        <MudSelectItem Value="@item">@item</MudSelectItem>
+                    }
                 </MudSelect>
             </MudItem>
             <MudItem xs="2">
                 <MudNumericField Label="Döviz İşlem Toplamı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.CurrencyTotalAmount"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="TL İşlem Toplamı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TLTotalAmount"></MudNumericField>
+                <MudNumericField Label="TL İşlem Toplamı" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="productTracking.TLTotalAmount"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
                 <MudTextField Label="İşlem Türü" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Process"></MudTextField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="Tahmini Üretim" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.EstimatedQuantity"></MudNumericField>
+                <MudNumericField Label="Ürün Gramaj" T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" ValueChanged="@(s=> CalculateEstimatedQuantity(0, s))"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="Ürün Gramaj" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.Grammage"></MudNumericField>
+                <MudNumericField Label="Tahmini Üretim" Variant="Variant.Outlined" ReadOnly=true Value="productTracking.EstimatedQuantity" HideSpinButtons=true Margin="Margin.Dense"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="Gerçekleşen Üretim Adeti" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.ActualQuantity"></MudNumericField>
+                <MudNumericField Label="Gerçekleşen Üretim Adeti" T="int" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" ValueChanged="@(s=> CalculateWasteQuantity(s))"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="Fire Miktarı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.WasteQuantity"></MudNumericField>
+                <MudNumericField Label="Fire Miktarı" Variant="Variant.Outlined" ReadOnly=true HideSpinButtons=true Margin="Margin.Dense" Value="productTracking.WasteQuantity"></MudNumericField>
             </MudItem>
             <MudItem xs="2">
-                <MudDatePicker Label="Üretimden Çıkış Tarihi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="productTracking.DicontinuationDate"></MudDatePicker>
+                <MudDatePicker Label="Üretimden Çıkış Tarihi" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" DateChanged="@(s=> CalculateDelayTimeAndProducttionDate(DateTime.MinValue,s,DateTime.MinValue))" Date="productTracking.DicontinuationDate"></MudDatePicker>
             </MudItem>
             <MudItem xs="2">
-                <MudTextField Label="Gecikme Süresi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.DelayTime"></MudTextField>
+                <MudTextField Label="Gecikme Süresi" Style="color:red" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly=true Value="productTracking.DelayTime"></MudTextField>
             </MudItem>
             <MudItem xs="2">
-                <MudTextField Label="Üretimde Geçen Süre" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TimeInProduction"></MudTextField>
+                <MudTextField Label="Üretimde Geçen Süre" Variant="Variant.Outlined" Margin="Margin.Dense" Value="productTracking.TimeInProduction"></MudTextField>
             </MudItem>
             <MudItem xs="2">
-                <MudNumericField Label="Toplam Maliyet" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="productTracking.TotalCost"></MudNumericField>
+                <MudNumericField Label="Toplam Maliyet" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="productTracking.TotalCost"></MudNumericField>
             </MudItem>
         </MudGrid>
     </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Cancel">Kapat</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveProductTracking">Kaydet</MudButton>
+    </DialogActions>
 </MudDialog>
 
 @code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
     [Parameter]
     public ProductTrackingModel productTracking { get; set; } = new();
 
+    [Parameter]
+    public bool isNew { get; set; }
+
+    private List<ExpenseTypeModel> expenseTypes = new();
+    private bool isBusy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+
+        var result = await definationService.GetAllStockExpenses();
+        if (result.Success)
+            expenseTypes = result.Data.ToList();
+        else
+            return;
+
+        isBusy = false;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void CalculateEstimatedQuantity(int quantity, decimal grammage)
+    {
+        if (productTracking.Quantity == 0 || productTracking.Quantity != quantity && quantity > 0)
+            productTracking.Quantity = quantity;
+        if (productTracking.Grammage == 0 || productTracking.Grammage != grammage && grammage > 0)
+            productTracking.Grammage = grammage;
+
+        if (productTracking.Quantity != 0 && productTracking.Grammage != 0)
+        {
+            var value = productTracking?.Quantity / productTracking?.Grammage ?? 0;
+            decimal estimatedQuantity = Math.Round(value);
+            productTracking.EstimatedQuantity = estimatedQuantity;
+            StateHasChanged();
+            if (productTracking.ActualQuantity != 0)
+                CalculateWasteQuantity(productTracking.ActualQuantity);
+        }
+        else
+            productTracking.EstimatedQuantity = 0;
+    }
+
+    private void CalculateWasteQuantity(int actualQuantity)
+    {
+        productTracking.ActualQuantity = actualQuantity;
+        if (productTracking.EstimatedQuantity != 0 && actualQuantity != 0)
+        {
+            var value = productTracking.EstimatedQuantity - actualQuantity;
+            productTracking.WasteQuantity = Decimal.ToInt32(value);
+            StateHasChanged();
+        }
+    }
+
+    private void CalculateDelayTimeAndProducttionDate(DateTime? deliveryDate, DateTime? dicontinuationDate, DateTime? processDate)
+    {
+        if (deliveryDate != DateTime.MinValue)
+            productTracking.DeliveryDate = deliveryDate;
+        if (dicontinuationDate != DateTime.MinValue)
+            productTracking.DicontinuationDate = dicontinuationDate;
+        if (processDate != DateTime.MinValue)
+            productTracking.ProcessDate = processDate;
 
 
+        if (productTracking.DeliveryDate != null && productTracking.DicontinuationDate != null && productTracking.ProcessDate != null)
+        {
+            TimeSpan? value = productTracking.DeliveryDate - productTracking.DicontinuationDate;
+            TimeSpan? productionTimeValue = productTracking.DicontinuationDate - productTracking.ProcessDate;
+            int delayTime = (int)value?.TotalDays;
+            int timeInProduction = (int)productionTimeValue?.TotalDays;
+            productTracking.DelayTime = delayTime;
+            productTracking.TimeInProduction = timeInProduction;
+        }
+        StateHasChanged();
+    }
+
+    private async Task SaveProductTracking()
+    {
+        if (isNew)
+        {
+            var result = await productTrackingService.AddProductTracking(productTracking);
+            if (result.Success)
+            {
+                messageboxHelper.ShowSuccessSnackMessage();
+                MudDialog.Close(productTracking);
+            }
+            else
+            {
+                messageboxHelper.ShowSnackMessage(result.Message, Severity.Error);
+                return;
+            }
+        }
+        else
+        {
+            var updateResult = await productTrackingService.UpdateProductTracking(productTracking);
+            if (updateResult.Success)
+            {
+                messageboxHelper.ShowSuccessSnackMessage();
+                MudDialog.Close(productTracking);
+            }
+            else
+            {
+                messageboxHelper.ShowSnackMessage(updateResult.Message, Severity.Error);
+                return;
+            }
+
+        }
+    }
 }

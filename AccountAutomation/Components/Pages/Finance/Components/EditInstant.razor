@@ -1,0 +1,90 @@
+﻿@using Business.Enums
+@using Core.Utilities.Helpers
+
+@inject IInstantService instantService;
+@inject MessageboxHelper messageboxHelper;
+
+<MudDialog Style="overflow:hidden">
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Firma Ünvanı" @bind-Value="Instant.CompanyName"></MudTextField>
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Firma Yetkilisi" @bind-Value="Instant.CompanyOfficer"></MudTextField>
+            </MudItem>
+
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Vergi Dairesi" @bind-Value="Instant.TaxHouse"></MudTextField>
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Vergi Numarası" @bind-Value="Instant.TaxNumber"></MudTextField>
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Sabit Telefon" @bind-Value="Instant.LandPhoneNumber"></MudTextField>
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Cep Telefonu" @bind-Value="Instant.PhoneNumber"></MudTextField>
+            </MudItem>
+            <MudItem xs="3">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="E-Mail" @bind-Value="Instant.Email"></MudTextField>
+            </MudItem>
+            <MudItem xs="3">
+                <MudSelect T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Firma Türü" @bind-Value="Instant.Status" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var item in EnumHelper<InstantTypeEnum>.GetNamesAndDisplayNames(typeof(InstantTypeEnum)))
+                    {
+                        <MudSelectItem Value="@item.Key">@item.Value</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField T="string" Variant="Variant.Outlined" Margin="Margin.Dense" Label="Firma Adresi" Lines="3" @bind-Value="Instant.CompanyAddress"></MudTextField>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">İptal</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public InstantModel Instant { get; set; } = new();
+
+    [Parameter]
+    public bool IsNew { get; set; }
+
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (IsNew)
+        {
+            var result = await instantService.AddInstant(Instant);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage($"Hata {result.Message}", Severity.Error);
+                return;
+            }
+            messageboxHelper.ShowSuccessSnackMessage();
+            MudDialog.Close(Instant);
+        }
+        else
+        {
+            var result = await instantService.UpdateInstant(Instant);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage($"Hata {result.Message}", Severity.Error);
+                return;
+            }
+            messageboxHelper.ShowSuccessSnackMessage();
+            MudDialog.Close(Instant);
+        }
+    }
+}

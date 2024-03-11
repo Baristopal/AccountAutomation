@@ -8,4 +8,5 @@ public interface IDefinationDal
     Task UpdateAsync<T>(string documentId, T model);
     Task<IEnumerable<T>> GetAllAsync<T>();
     Task<T> GetByIdAsync<T>(string id);
+    Task<IEnumerable<ExpenseTypeModel>> GetAllStockExpenses();
 }

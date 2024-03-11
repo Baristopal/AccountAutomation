@@ -19,7 +19,7 @@ public class ProductTrackingModel : BaseEntity
     public decimal CurrencyTotalAmount { get; set; }
     public decimal TLTotalAmount { get; set; }
     public string Process { get; set; }
-    public int EstimatedQuantity { get; set; }
+    public decimal EstimatedQuantity { get; set; }
     public decimal Grammage { get; set; }
     public int ActualQuantity { get; set; }
     public int WasteQuantity { get; set; }

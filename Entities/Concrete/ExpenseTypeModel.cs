@@ -6,5 +6,5 @@ namespace Entities.Concrete;
 public class ExpenseTypeModel : BaseEntity
 {
     public string Name { get; set; }
-    public bool IsStcoked { get; set; } = false;
+    public bool IsStocked { get; set; } = false;
 }

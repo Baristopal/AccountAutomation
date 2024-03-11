@@ -53,4 +53,13 @@ public class DataDal : IDataDal
         var result = await _noSqlHelper.QueryAsync<CaseModel>(query);
         return result;
     }
+
+    public async Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses()
+    {
+        string query = @"select d.* From Data._default.Data as d where d.isDeleted=false 
+                        AND d.expenseType IN(select RAW e.name From Data._default.ExpenseTypes as e where e.isStocked=true)";
+
+        var result = await _noSqlHelper.QueryAsync<DataModel>(query);
+        return result;
+    }
 }

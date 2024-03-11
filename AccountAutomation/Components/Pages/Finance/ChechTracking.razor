@@ -1,0 +1,114 @@
+﻿@page "/Finance/Checks";
+@using WebUI.Components.Pages.Finance.Components
+
+@inject ICheckService checkService;
+@inject MessageboxHelper messageboxHelper;
+@inject IDialogService dialogService;
+
+<PageTitle>Çek Takip</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-4" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Çek Takip</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(()=> EditCheck(new CheckModel()))">Ekle</MudButton>
+</MudStack>
+
+<MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
+    <thead>
+        <tr>
+            <th>Banka Adı</th>
+            <th>Çek No</th>
+            <th>Firma Adı</th>
+            <th>Vade</th>
+            <th>Tutar</th>
+            <th>Açıklama</th>
+            <th>Para Birimi</th>
+            <th>İşlem Türü</th>
+            <th>Giriş Tarihi</th>
+            <th>Çıkış/Ödeme Tarihi</th>
+            <th>Tahsil/Tediye Durumu</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var check in checks)
+        {
+            <tr>@check.BankName</tr>
+            <tr>@check.CheckNumber</tr>
+            <tr>@check.CompanyName</tr>
+            <tr>@check.MaturityDate</tr>
+            <tr>@check.Price</tr>
+            <tr>@check.Description</tr>
+            <tr>@check.Currency</tr>
+            <tr>@check.ProcessType</tr>
+            <tr>@check.ProcessDate</tr>
+            <tr>@check.PaymentDate</tr>
+            <tr>@check.Status</tr>
+            <tr>
+                <MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Update" Title="Güncelle" OnClick="@(()=> EditCheck(check))"></MudFab>
+                <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Update" Title="Sil" OnClick="@(()=> DeleteCheck(check))"></MudFab>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+
+    private bool isBusy = false;
+
+    private List<CheckModel> checks = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetAllChecks();
+        isBusy = false;
+    }
+
+    private async Task GetAllChecks()
+    {
+        var result = await checkService.GetAllChecks();
+        if (result.Success == false)
+        {
+            messageboxHelper.ShowSnackMessage(result.Message, Severity.Error);
+            return;
+        }
+
+        checks = result.Data.ToList();
+    }
+
+    private async Task DeleteCheck(CheckModel model)
+    {
+        model.IsDeleted = true;
+        var checkDeleteResult = await messageboxHelper.ShowDialog("Çek Silme İşlemi", "Seçtiğiniz çeki silmek istediğinize emin misiniz?");
+        if (checkDeleteResult == true)
+        {
+            var result = await checkService.UpdateCheck(model);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage("Çek Silinemedi", Severity.Error);
+                return;
+            }
+
+            messageboxHelper.ShowSuccessSnackMessage();
+        }
+    }
+
+    private async Task EditCheck(CheckModel model)
+    {
+        bool isNew = false;
+
+        if (string.IsNullOrEmpty(model.ProcessType) == false)
+            isNew = true;
+
+        DialogParameters parameters = new();
+        parameters.Add("Check", model);
+        parameters.Add("isNew", isNew);
+        var dialog = dialogService.Show<EditCheck>("Çek Ekle/Düzenle", parameters, MudHelper.MudDialogHelper.DialogOptionsLarge);
+        var dialogResult = await dialog.Result;
+    }
+}

@@ -38,4 +38,11 @@ public class DefinationDal : IDefinationDal
         return result;
     }
 
+    public async Task<IEnumerable<ExpenseTypeModel>> GetAllStockExpenses()
+    {
+        string query = "SELECT c.* FROM Data._default.ExpenseTypes as c WHERE c.isDeleted = false AND c.isStocked = true ORDER BY c.createdDate";
+        var result = await _noSqlHelper.QueryAsync<ExpenseTypeModel>(query);
+        return result;
+    } 
+
 }

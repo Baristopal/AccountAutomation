@@ -1,0 +1,89 @@
+﻿@using Business.Enums
+@inject ICheckService checkService;
+@inject MessageboxHelper messageboxHelper;
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="2">
+                <MudTextField T="string" Label="Banka Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.BankName"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField T="string" Label="Çek No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.CheckNumber"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField T="string" Label="Firma Adı" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.CompanyName"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudDatePicker Label="Vade Tarihi" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" @bind-Date="Check.MaturityDate"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="2">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" Label="Tutar" @bind-Value="Check.Price"></MudNumericField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudTextField T="string" Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.Description"></MudTextField>
+            </MudItem>
+            <MudItem xs="2">
+                <MudSelect T="string" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Label="Para Birimi" Dense=true Margin="Margin.Dense" @bind-Value="Check.Currency">
+                    @foreach (var item in Enum.GetNames(typeof(CurrencyEnum)))
+                    {
+                        <MudSelectItem Value="@item">@item</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2">
+                <MudSelect T="string" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Label="İşlem Türü" Dense=true Margin="Margin.Dense" @bind-Value="Check.ProcessType">
+                    <MudSelectItem Value="@("MY_CHECK")">KENDİ ÇEKİMİZ</MudSelectItem>
+                    <MudSelectItem Value="@("ENDORSED_CHECK")">CİRO ÇEK</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="2">
+                <MudDatePicker Label="Giriş Tarihi" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" @bind-Date="Check.ProcessDate"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="2">
+                <MudDatePicker Label="Ödeme Tarihi" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" @bind-Date="Check.PaymentDate"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="2">
+                <MudSelect T="string" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Label="İşlem Türü" Dense=true Margin="Margin.Dense" @bind-Value="Check.Status">
+                    <MudSelectItem Value="@("PAID")">ÖDENDİ</MudSelectItem>
+                    <MudSelectItem Value="@("TRANSFER")">VİRMAN</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Submit">Kaydet</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@Cancel">İptal</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+    [Parameter]
+    public CheckModel Check { get; set; }
+
+
+    private async Task Submit()
+    {
+        if (isNew)
+        {
+            await checkService.AddCheck(Check);
+            messageboxHelper.ShowSnackMessage("Çek başarıyla eklendi.");
+        }
+        else
+        {
+            await checkService.UpdateCheck(Check);
+            messageboxHelper.ShowSnackMessage("Çek başarıyla güncellendi.");
+        }
+
+        MudDialog.Close(Check);
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

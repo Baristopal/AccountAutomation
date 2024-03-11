@@ -1,4 +1,5 @@
-﻿using DataAccess.Abstract;
+﻿using Business.Abstract;
+using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,20 @@ public class ProductTrackingManager : IProductTrackingService
     {
         _productTrackingDal = productTrackingDal;
         _logger = logger;
+    }
+
+    public async Task<BaseResponse<IEnumerable<ProductTrackingModel>>> GetAllProductTrackingWithStockName()
+    {
+        try
+        {
+            var result = await _productTrackingDal.GetAllWithStockName();
+            return new BaseResponse<IEnumerable<ProductTrackingModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<ProductTrackingModel>>(new List<ProductTrackingModel>(), false, ex.Message);
+        }
     }
 
     public async Task<BaseResponse<ProductTrackingModel>> AddProductTracking(ProductTrackingModel model)
@@ -69,12 +84,4 @@ public class ProductTrackingManager : IProductTrackingService
             return new BaseResponse<ProductTrackingModel>(false, ex.Message);
         }
     }
-}
-
-public interface IProductTrackingService
-{
-    Task<BaseResponse<ProductTrackingModel>> AddProductTracking(ProductTrackingModel model);
-    Task<BaseResponse<IEnumerable<ProductTrackingModel>>> GetAllProductTracking();
-    Task<BaseResponse<ProductTrackingModel>> UpdateProductTracking(ProductTrackingModel model);
-    Task<BaseResponse<ProductTrackingModel>> GetProductTrackingById(string id);
 }

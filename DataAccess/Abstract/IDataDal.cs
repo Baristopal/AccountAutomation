@@ -9,4 +9,5 @@ public interface IDataDal
     Task Update(DataModel model);
     Task<DataModel> GetById(string id);
     Task<IEnumerable<CaseModel>> GetCase();
+    Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses();
 }

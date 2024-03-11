@@ -48,7 +48,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in expenseTypes.Where(s => s.IsStcoked == false))
+                    @foreach (var item in expenseTypes.Where(s => s.IsStocked == false))
                     {
                         <tr>
                             <td>@item.Name</td>
@@ -90,7 +90,7 @@
 
                         </tr>
 
-                        @foreach (var item in expenseTypes.Where(s => s.IsStcoked == true))
+                        @foreach (var item in expenseTypes.Where(s => s.IsStocked == true))
                     {
                         <tr>
                             <td>@item.Name</td>
