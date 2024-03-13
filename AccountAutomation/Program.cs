@@ -2,14 +2,13 @@ using Business.Abstract;
 using Business.Concrete;
 using Core.Utilities;
 using Core.Utilities.Helpers;
-using Couchbase;
 using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using DataAccess.Concrete;
 using Entities.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using MudBlazor.Services;
 using Serilog;
-using Serilog.Formatting.Json;
 using Serilog.Sinks.Datadog.Logs;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Globalization;
@@ -59,30 +58,35 @@ Log.Logger = new LoggerConfiguration()
 #endregion
 
 
-//builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-//        .AddCookie(options =>
-//        {
-//            options.LoginPath = "/Auth/Login";
-//            options.LogoutPath = "/Auth/Logout";
-//            options.AccessDeniedPath = "/Auth/Forbidden";
-//            options.ReturnUrlParameter = "returnUrl";
-//            options.Cookie.Name = "auth";
-//            options.Cookie.Path = "/";
-//            options.Cookie.HttpOnly = true;
-//        });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
+    options.LogoutPath = "/Auth/Logout";
+    options.AccessDeniedPath = "/Auth/Forbidden";
+    options.ReturnUrlParameter = "returnUrl";
+    options.Cookie.Name = "AccountantAutomation.Auth";
+    options.Cookie.Path = "/";
+    options.Cookie.HttpOnly = true;
+});
 
 builder.Host.UseSerilog();
 
-
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 builder.Services.AddMudServices();
 
 
-
+#region IoC
 builder.Services.AddScoped<IPayrollService, PayrollManager>();
 builder.Services.AddScoped<IPayrollDal, PayrollDal>();
 builder.Services.AddScoped<IPersonnelService, PersonnelManager>();
@@ -104,6 +108,7 @@ builder.Services.AddScoped<ICheckService, CheckManager>();
 builder.Services.AddScoped<IInstantDal, InstantDal>();
 builder.Services.AddScoped<IInstantService, InstantManager>();
 
+#endregion
 
 var culture = new CultureInfo("tr-TR", true);
 culture.NumberFormat.NumberDecimalSeparator = ",";

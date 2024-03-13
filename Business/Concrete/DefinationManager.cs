@@ -54,7 +54,7 @@ public class DefinationManager : IDefinationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<T>>(false, ex.Message);
+            return new BaseResponse<IEnumerable<T>>(new List<T>(),false, ex.Message);
         }
     }
 

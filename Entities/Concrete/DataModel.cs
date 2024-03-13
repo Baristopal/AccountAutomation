@@ -15,6 +15,8 @@ public class DataModel : BaseEntity, IEntity
     public string Description { get; set; } // Açıklama
     public string ExpenseType { get; set; } // Gider Türü
     public bool IsStocked { get; set; } // ticari mal mı
+    public int InstantId { get; set; }
+    public string InstantName { get; set; }
     public int Stock { get; set; } // Stok
     public string Unit { get; set; } // Birim
     public decimal TaxAmount { get; set; } // Vergi Tutarı

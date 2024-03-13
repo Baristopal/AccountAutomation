@@ -34,4 +34,11 @@ public class CheckDal : ICheckDal
         var result = await _noSqlHelper.GetByIdAsync<CheckModel>(id);
         return result;
     }
+
+    public async Task<decimal> GetChecksTotalAmount(string processType)
+    {
+        string query = @$"SELECT RAW c.price FROM Data._default.Check as c WHERE c.isDeleted = false AND c.processType = '{processType}'";
+        var result = await _noSqlHelper.SingleOrDefaultAsync<decimal>(query);
+        return result;
+    }
 }

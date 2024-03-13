@@ -8,18 +8,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="wwwroot\lib\**" />
 	  <Compile Remove="wwwroot\vendor\**" />
+	  <Content Remove="wwwroot\lib\**" />
 	  <Content Remove="wwwroot\vendor\**" />
+	  <EmbeddedResource Remove="wwwroot\lib\**" />
 	  <EmbeddedResource Remove="wwwroot\vendor\**" />
+	  <None Remove="wwwroot\lib\**" />
 	  <None Remove="wwwroot\vendor\**" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.4.15" />
 		<PackageReference Include="CouchbaseNetClient" Version="3.4.15" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="8.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="8.0.3" />
 		<PackageReference Include="MongoDB.Driver" Version="2.24.0" />
-		<PackageReference Include="MudBlazor" Version="6.15.0" />
+		<PackageReference Include="MudBlazor" Version="6.17.0" />
 		<PackageReference Include="PDFsharp" Version="6.0.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
 		<PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />

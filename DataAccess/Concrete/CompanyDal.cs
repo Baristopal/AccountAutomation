@@ -47,7 +47,8 @@ public class CompanyDal : ICompanyDal
     public async Task<CompanyModel> GetCompanyByEmail(string email)
     {
         string query = $"SELECT c.* FROM Data._default.Company as c WHERE c.isDeleted = false AND c.email = '{email}'";
+        var asd = await _noSqlHelper.QueryAsync<CompanyModel>(query);
         var result = await _noSqlHelper.SingleOrDefaultAsync<CompanyModel>(query);
         return result;
     }
-}
+}   

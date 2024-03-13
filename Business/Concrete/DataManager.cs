@@ -1,6 +1,7 @@
 ﻿using Business.Abstract;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.Dto;
 using Entities.Models;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -17,11 +18,28 @@ public class DataManager : IDataService
         _logger = logger;
     }
 
-    public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllData()
+
+    public async Task<BaseResponse<IEnumerable<DataModel>>> GetFinanceTranckings(FinanceTrackingSearchDto searchKeys)
     {
         try
         {
-            var result = await _dataDal.GetAll();
+            var result = await _dataDal.GetAll(searchKeys);
+            return new BaseResponse<IEnumerable<DataModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>(new List<DataModel>(), false, ex.Message);
+        }
+    }
+
+    public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllData()
+    {
+        FinanceTrackingSearchDto searchDto = new FinanceTrackingSearchDto();
+
+        try
+        {
+            var result = await _dataDal.GetAll(searchDto);
             return new BaseResponse<IEnumerable<DataModel>>(result, true);
         }
         catch (Exception ex)

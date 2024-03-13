@@ -69,7 +69,7 @@ public class CompanyManager : ICompanyService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<CompanyModel>>(null, false, ex.Message);
+            return new BaseResponse<IEnumerable<CompanyModel>>(new List<CompanyModel>(), false, ex.Message);
         }
     }
 

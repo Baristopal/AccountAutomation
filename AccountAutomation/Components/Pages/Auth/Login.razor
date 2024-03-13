@@ -4,6 +4,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 
 
@@ -78,6 +79,8 @@
 </style>
 
 @code {
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; } = default;
 
     private UserForLoginDto userLogin = new();
 
@@ -102,22 +105,24 @@
         }
         else
         {
-            // var httpContextAccessor = ServiceTool.ServiceProvider.GetService<IHttpContextAccessor>();
+            //var httpContextAccessor = ServiceTool.ServiceProvider.GetService<IHttpContextAccessor>();
 
 
-            // var claims = new List<Claim>
-            // {
-            //     new Claim(ClaimTypes.Name, result.Data.Name),
-            //     new Claim(ClaimTypes.Email, result.Data.Email),
-            //     new Claim("CompanyId", result.Data.CompanyId.ToString()),
-            //     new Claim(ClaimTypes.NameIdentifier, result.Data.Id.ToString())
-            // };
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, result.Data.Name),
+                new Claim(ClaimTypes.Email, result.Data.Email),
+                new Claim("CompanyId", result.Data.CompanyId.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, result.Data.Id.ToString())
+            };
 
             // if (result.Data.CompanyId == 1001)
             //     claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
-            // var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            // var principal = new ClaimsPrincipal(identity);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(principal);
 
             // var authProperties = new AuthenticationProperties
             //     {

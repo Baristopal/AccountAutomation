@@ -8,4 +8,5 @@ public interface ICheckDal
     Task Update(CheckModel model);
     Task<IEnumerable<CheckModel>> GetAll();
     Task<CheckModel> GetById(string id);
+    Task<decimal> GetChecksTotalAmount(string processType);
 }

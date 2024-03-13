@@ -1,0 +1,6 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+<AuthorizeView>
+    <MudAlert Dense="true" Severity="Severity.Warning" Icon="@Icons.Material.Filled.Warning" Variant="Variant.Filled">
+        <MudText>Sayın <strong>@context.User?.FindFirst("FullName")?.Value</strong>, bu sayfada yetkiniz bulunmamaktadır.</MudText>
+    </MudAlert>
+</AuthorizeView>

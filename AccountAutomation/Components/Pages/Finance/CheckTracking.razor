@@ -36,20 +36,28 @@
     <tbody>
         @foreach (var check in checks)
         {
-            <tr>@check.BankName</tr>
-            <tr>@check.CheckNumber</tr>
-            <tr>@check.CompanyName</tr>
-            <tr>@check.MaturityDate</tr>
-            <tr>@check.Price</tr>
-            <tr>@check.Description</tr>
-            <tr>@check.Currency</tr>
-            <tr>@check.ProcessType</tr>
-            <tr>@check.ProcessDate</tr>
-            <tr>@check.PaymentDate</tr>
-            <tr>@check.Status</tr>
             <tr>
-                <MudFab Color="Color.Warning" StartIcon="@Icons.Material.Filled.Update" Title="Güncelle" OnClick="@(()=> EditCheck(check))"></MudFab>
-                <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Update" Title="Sil" OnClick="@(()=> DeleteCheck(check))"></MudFab>
+                <td>@check.BankName</td>
+                <td>@check.CheckNumber</td>
+                <td>@check.CompanyName</td>
+                <td>@check.MaturityDate</td>
+                <td>@check.Price</td>
+                <td>@check.Description</td>
+                <td>@check.Currency</td>
+                <td>
+                    @(check.ProcessType == "MY_CHECK" ? "Kendi Çekimiz" : "Ciro Çek")
+                </td>
+                <td>@check.ProcessDate</td>
+                <td>@check.PaymentDate</td>
+                <td>
+                    @(check.ProcessType == "PAID" ? "Ödendi" : "Virman")
+                </td>
+                <td>
+                    <MudItem Class="d-flex">
+                        <MudIconButton Icon="@Icons.Material.Filled.Update" Color="Color.Warning" Title="Güncelle" OnClick="@(()=> EditCheck(check))"></MudIconButton>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Title="Sil" OnClick="@(()=> DeleteCheck(check))"></MudIconButton>
+                    </MudItem>
+                </td>
             </tr>
         }
     </tbody>
@@ -60,7 +68,6 @@
     private bool isBusy = false;
 
     private List<CheckModel> checks = new();
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,7 +109,7 @@
     {
         bool isNew = false;
 
-        if (string.IsNullOrEmpty(model.ProcessType) == false)
+        if (string.IsNullOrEmpty(model.ProcessType))
             isNew = true;
 
         DialogParameters parameters = new();

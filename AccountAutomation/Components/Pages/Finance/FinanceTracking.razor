@@ -1,36 +1,199 @@
 ﻿@page "/Finance/FinanceTracking"
 
+@inject IDataService dataService
+@inject MessageboxHelper messageBoxHelper
+@inject ICheckService checkService
 
-<div class="col-lg-4 col-12 mb-4">
-    <div class="card">
-        <h5 class="card-header">User by Devices</h5>
-        <div class="card-body">
-            <canvas id="doughnutChart" class="chartjs mb-4" data-height="350"></canvas>
-            <ul class="doughnut-legend d-flex justify-content-around ps-0 mb-2 pt-1">
-                <li class="ct-series-0 d-flex flex-column">
-                    <h5 class="mb-0">Desktop</h5>
-                    <span class="badge badge-dot my-2 cursor-pointer rounded-pill" style="background-color: rgb(102, 110, 232);width:35px; height:6px;"></span>
-                    <div class="text-muted">80 %</div>
-                </li>
-                <li class="ct-series-1 d-flex flex-column">
-                    <h5 class="mb-0">Tablet</h5>
-                    <span class="badge badge-dot my-2 cursor-pointer rounded-pill" style="background-color: rgb(40, 208, 148);width:35px; height:6px;"></span>
-                    <div class="text-muted">10 %</div>
-                </li>
-                <li class="ct-series-2 d-flex flex-column">
-                    <h5 class="mb-0">Mobile</h5>
-                    <span class="badge badge-dot my-2 cursor-pointer rounded-pill" style="background-color: rgb(253, 172, 52);width:35px; height:6px;"></span>
-                    <div class="text-muted">10 %</div>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
+<PageTitle>Finans Takip</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Finans Takip</MudText>
+</MudStack>
+
+<MudGrid Class="mb-4">
+    <MudItem xs="3">
+        <MudChart ChartType="ChartType.Donut" LegendPosition="Position.Right" Width="200px" Height="200px" InputData="@amounts.ToArray()" InputLabels="@types.ToArray()">
+            <CustomGraphics>
+                <text class="donut-inner-text" x="50%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">Nakit Kasa</text>
+                <text class="donut-inner-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">10000 TL</text>
+            </CustomGraphics>
+        </MudChart>
+    </MudItem>
+    <MudItem xs="4">
+        <MudDateRangePicker Label="Vade Sorgu Tarih" DateFormat="dd/MM/yyyy" TitleDateFormat="dddd, dd. MMMM" DateRange="_dateRange" DateRangeChanged="OnDateRangeChanged" />
+        <MudItem Class="mt-5">
+            <MudItem Class="d-flex align-center justify-space-between">
+                <MudText Class="mr-5" Align="Align.Center">Tahsil Edilecek Çekler: </MudText>
+                <MudTextField Style="width:70%; margin-left:6.80rem;" ReadOnly=true T="decimal" Value="collectedChecksAmount" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudItem>
+            <MudItem Class="d-flex align-center justify-space-between">
+                <MudText Class="mr-5" Align="Align.Center">Ödenecek Çekler: </MudText>
+                <MudTextField Style="width:63.8%; margin-left:9rem;" ReadOnly=true T="decimal" Value="paidChecksAmount" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            </MudItem>
+        </MudItem>
+    </MudItem>
+    @if (values.Any())
+    {
+        <MudItem>
+            <MudChart ChartType="ChartType.Pie" InputData="@values.ToArray()" InputLabels="@titles.ToArray()" Width="200px" LegendPosition="Position.Right" Height="200px" />
+        </MudItem>
+    }
+</MudGrid>
+
+<MudSimpleTable Bordered=true Dense=true Hover=true Striped=true>
+    <thead>
+        <tr>
+            <th>İşlem</th>
+            <th>İşlem</th>
+            <th>Tarih</th>
+            <th>Vade Tarihi</th>
+            <th>Fatura No</th>
+            <th>Firma Adı</th>
+            <th>Grup</th>
+            <th>Açıklama</th>
+            <th>Stok/Masraf Adı</th>
+            <th>Stok Adet</th>
+            <th>Birim Adı</th>
+            <th>KDV Tutar</th>
+            <th>Döviz Birim</th>
+            <th>Döviz Tutar</th>
+            <th>TL Tutar</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var data in datas)
+        {
+            <tr>
+                <td>
+                    @{
+                        string type = "";
+                        if (data.ProcessType == "ALIŞ" || data.ProcessType == "SATIŞ")
+                            type = "FATURA";
+                        else if (data.ProcessType == "TAHSİLAT" || data.ProcessType == "ÖDEME")
+                            type = "ÇEK/SENET";
+                    }
+                    @type
+                </td>
+                <td>@data.ProcessType</td>
+                <td>@data.ProcessDate.Value.ToShortDateString()</td>
+                <td>@data.MaturityDate.Value.ToShortDateString()</td>
+                <td>@data.InvoiceNumber</td>
+                <td>Firma Adı</td>
+                <td>Grup</td>
+                <td>@data.Description</td>
+                <td>@data.ExpenseType</td>
+                <td>@data.Stock</td>
+                <td>@data.Unit</td>
+                <td>@data.TaxAmount</td>
+                <td>@data.Currency</td>
+                <td>@data.CurrencyTotalAmount</td>
+                <td>@data.TLTotalAmount</td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
 
 
 @code {
+    private List<string> titles = new();
+    private List<double> values = new();
 
-    public double[] data = { 25, 77, 28, 5 };
-    public string[] labels = { "Oil", "Coal", "Gas", "Biomass" };
+    private List<string> types = new();
+    private List<double> amounts = new();
 
+    private bool isBusy = false;
+
+    private DateRange _dateRange = new();
+
+    private List<DataModel> datas = new();
+    private FinanceTrackingSearchDto searchKeys = new();
+    private List<CaseModel> cases = new();
+
+    private decimal collectedChecksAmount = 0;
+    private decimal paidChecksAmount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        searchKeys = new FinanceTrackingSearchDto()
+            {
+                StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0),
+                EndDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month), 23, 59, 59)
+            };
+
+        _dateRange.Start = searchKeys.StartDate;
+        _dateRange.End = searchKeys.EndDate;
+
+        isBusy = true;
+        await GetDatas();
+        await GetCase();
+
+        foreach (var item in cases)
+        {
+            double amount = 0;
+            if (item.ProcessType.Contains("TAHSİLAT"))
+                amount = +Decimal.ToDouble(item.TLTotalAmount);
+            else if (item.ProcessType.Contains("ÖDEME"))
+                amount = -Decimal.ToDouble(item.TLTotalAmount);
+
+            types.Add($"{item.SalesType} | {amount} TL");
+            if (amount < 0)
+                amount = Math.Abs(amount);
+
+            amounts.Add(amount);
+        }
+
+        collectedChecksAmount = (await checkService.GetChecksTotalAmount("ENDORSED_CHECK")).Data;
+        paidChecksAmount = (await checkService.GetChecksTotalAmount("MY_CHECK")).Data;
+
+        isBusy = false;
+    }
+
+    private async Task GetCase()
+    {
+        var result = await dataService.GetCase();
+        if (result.Success == false)
+        {
+            messageBoxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+            return;
+        }
+
+        cases = result.Data.ToList();
+    }
+
+    private async Task GetDatas()
+    {
+        var result = await dataService.GetFinanceTranckings(searchKeys);
+        if (result.Success == false)
+        {
+            messageBoxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+            return;
+        }
+
+        datas = result.Data.ToList();
+
+        if (datas.Count > 0)
+        {
+            var collectetable = datas.Where(s => s.ProcessType.Contains("ALIŞ") || s.ProcessType.Contains("ÖDEME")).Sum(s => s.TLTotalAmount);
+            var payable = datas.Where(s => s.ProcessType.Contains("SATIŞ") || s.ProcessType.Contains("TAHSİLAT")).Sum(s => s.TLTotalAmount);
+
+            values = new List<double> { Decimal.ToDouble(collectetable), Decimal.ToDouble(payable) };
+            titles = new List<string> { $"Tahsil Edilecekler Toplamı {collectetable} TL", $"Ödenecekler Toplamı {payable} TL" };
+        }
+    }
+
+    private async Task OnDateRangeChanged(DateRange dateRange)
+    {
+        searchKeys.StartDate = DateTime.Parse(dateRange.Start.ToString());
+        searchKeys.EndDate = DateTime.Parse(dateRange.End.ToString());
+
+        _dateRange = dateRange;
+
+        isBusy = true;
+        await GetDatas();
+        isBusy = false;
+    }
 }

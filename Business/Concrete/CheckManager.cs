@@ -71,5 +71,19 @@ public class CheckManager : ICheckService
             return new BaseResponse<CheckModel>(new CheckModel(), false, ex.Message);
         }
     }
+
+    public async Task<BaseResponse<decimal>> GetChecksTotalAmount(string processType)
+    {
+        try
+        {
+            var result = await _checkDal.GetChecksTotalAmount(processType);
+            return new BaseResponse<decimal>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<decimal>(0, false, ex.Message);
+        }
+    }
 }
 

@@ -1,10 +1,10 @@
 ﻿@page "/data/data-entry"
 @using Business.Enums
-@using Core.Utilities.Helpers
 @using Entities.Dto
 
 @inject IDataService dataService
 @inject IDefinationService definationService
+@inject IInstantService instantService
 
 <PageTitle>Veri Girişi</PageTitle>
 
@@ -51,7 +51,7 @@
         <MudItem xs="2">
             <MudDatePicker Label="Vade Tarihi" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Date="data.MaturityDate"></MudDatePicker>
         </MudItem>
-        <MudItem xs="2">
+        <MudItem xs="1">
             <MudSelect T="string" Label="İşlem Türü" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense=true @bind-Value="data.SalesType">
                 @foreach (var item in EnumHelper<PurchaseTypeEnum>.GetNamesAndDisplayNames(typeof(PurchaseTypeEnum)))
                 {
@@ -59,8 +59,16 @@
                 }
             </MudSelect>
         </MudItem>
-        <MudItem xs="2">
+        <MudItem xs="1">
             <MudTextField T="string" Label="Fatura No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.InvoiceNumber"></MudTextField>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect T="int" Label="Cari" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.InstantId">
+                @foreach (var item in instants)
+                {
+                    <MudSelectItem Value="@item.InstantId">@item.CompanyName</MudSelectItem>
+                }
+            </MudSelect>
         </MudItem>
         <MudItem xs="2">
             <MudTextField T="string" Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.Description"></MudTextField>
@@ -128,6 +136,7 @@
             dataCount--;
     }
 
+    private List<InstantModel> instants = new();
     private List<DataEntryDto> dataEntries = new();
     private List<ExpenseTypeModel> expenseTypes = new();
 
@@ -135,12 +144,14 @@
     {
         isBusy = true;
         expenseTypes = (await definationService.GetAll<ExpenseTypeModel>()).Data.ToList();
+        instants = (await instantService.GetAllInstant()).Data.ToList();
         isBusy = false;
     }
 
     private async Task Submit()
     {
         isBusy = true;
+        data.InstantName = instants.FirstOrDefault(s => s.InstantId == data.InstantId)?.CompanyName;
         foreach (var dataEntry in dataEntries)
         {
             data.ExpenseType = dataEntry.ExpenseType;

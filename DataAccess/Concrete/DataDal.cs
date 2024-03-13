@@ -1,6 +1,8 @@
 ﻿using Core.Utilities;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Entities.Dto;
+using System.Text;
 
 namespace DataAccess.Concrete;
 public class DataDal : IDataDal
@@ -17,9 +19,21 @@ public class DataDal : IDataDal
         await _noSqlHelper.InsertAsync(model.Id, model);
     }
 
-    public async Task<IEnumerable<DataModel>> GetAll()
+    public async Task<IEnumerable<DataModel>> GetAll(FinanceTrackingSearchDto searchKeys)
     {
-        string query = "SELECT d.* FROM Data._default.Data as d WHERE d.isDeleted = false ORDER BY DATE_FORMAT_STR(d.createdDate, '1111-11-11T00:00:00Z')";
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.Append("SELECT d.* FROM Data._default.Data as d WHERE d.isDeleted = false");
+
+        if (searchKeys.StartDate != null && searchKeys.EndDate != null)
+        {
+            stringBuilder.Append($" AND (d.maturityDate BETWEEN '{searchKeys.StartDate?.ToString("yyyy-MM-dd")}T00:00:00.0' AND '{searchKeys.EndDate?.ToString("yyyy-MM-dd")}T23:59:00.0')");
+        }
+
+        stringBuilder.Append(" ORDER BY DATE_FORMAT_STR(d.createdDate, '1111-11-11T00:00:00Z')");
+
+        string query = stringBuilder.ToString();
+
         var result = await _noSqlHelper.QueryAsync<DataModel>(query);
         return result;
     }

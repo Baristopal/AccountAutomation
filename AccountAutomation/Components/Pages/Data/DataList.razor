@@ -1,8 +1,11 @@
 ﻿@page "/data"
 @using Microsoft.AspNetCore.Authorization
+@using WebUI.Components.Components
 
 @inject IDataService dataService
 @inject IDialogService dialogService
+
+@attribute [Authorize]
 
 <PageTitle>Data Listesi</PageTitle>
 <MudOverlay Visible="@isBusy" DarkBackground="true">
