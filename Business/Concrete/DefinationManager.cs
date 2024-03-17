@@ -1,24 +1,34 @@
 ﻿using Business.Abstract;
+using Core.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace Business.Concrete;
 public class DefinationManager : IDefinationService
 {
     private readonly IDefinationDal _definationDal;
     private readonly ILogger<DefinationManager> _logger;
-    public DefinationManager(IDefinationDal definationDal, ILogger<DefinationManager> logger)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly int _companyId;
+    public DefinationManager(IDefinationDal definationDal, ILogger<DefinationManager> logger, IHttpContextAccessor httpContextAccessor)
     {
         _definationDal = definationDal;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _companyId = httpContextAccessor.GetCompanyId();
     }
 
     public async Task<BaseResponse<T>> Add<T>(string documentId, T model)
     {
         try
         {
+            Type type = typeof(T);
+            PropertyInfo propertyInfo = type?.GetProperty("CompanyId");
+            propertyInfo.SetValue(model, _companyId);
             await _definationDal.InsertAsync<T>(documentId, model);
             return new BaseResponse<T>(model, true);
         }
@@ -48,7 +58,7 @@ public class DefinationManager : IDefinationService
     {
         try
         {
-            var result = await _definationDal.GetAllAsync<T>();
+            var result = await _definationDal.GetAllAsync<T>(_companyId);
             return new BaseResponse<IEnumerable<T>>(result, true);
         }
         catch (Exception ex)
@@ -77,7 +87,7 @@ public class DefinationManager : IDefinationService
     {
         try
         {
-            var result = await _definationDal.GetAllStockExpenses();
+            var result = await _definationDal.GetAllStockExpenses(_companyId);
             return new BaseResponse<IEnumerable<ExpenseTypeModel>>(result, true);
         }
         catch (Exception ex)

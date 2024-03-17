@@ -1,8 +1,12 @@
 ﻿@page "/stock"
+@using Microsoft.AspNetCore.Authorization
 
 @inject IDefinationService definationService
 @inject IDataService dataService
 @inject IProductTrackingService productTrackingService
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Stok</PageTitle>
 
@@ -48,47 +52,47 @@
             <tr>
                 <td>@item.Name</td>
                 <td>ADET</td>
-                <td>@datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
+                <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
                 <td>
                     @{
-                        unitAmount = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount) / datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        unitAmount = datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount) / datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock);
                     }
-                    @unitAmount
+                    @Math.Round(unitAmount,2)
                 </td>
-                <td>@datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
-                <td>@(datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock) / datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock))</td>
-                <td>@datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
+                <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
+                <td>@(datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock) / datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock))</td>
+                <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
                 <td>
                     @{
-                        var salesAmount = datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount);
-                        var salesStock = datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        var salesAmount = datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount);
+                        var salesStock = datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock);
                         if (salesAmount != 0 && salesStock != 0)
                             sellingAmount = salesAmount / salesStock;
                     }
                     @sellingAmount
                 </td>
-                <td>@datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
+                <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
                 <td>
                     @{
-                        if (datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock) > 0)
+                        if (datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock) > 0)
                         {
 
-                            var buyedAmount = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount);
-                            var buyedStock = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                            var buyedAmount = datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount);
+                            var buyedStock = datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock);
                             if (buyedAmount != 0 && buyedStock != 0)
                                 amount = ((buyedAmount / buyedStock) / sellingAmount);
                         }
                     }
                     @amount
                 </td>
-                <td>@productTrackings.Where(s => s.ProcessType == "Üretime Giden" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
-                <td>@productTrackings.Where(s => s.ProcessType == "Üretimden Gelen" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
-                <td>@productTrackings.Where(s => s.ProcessType == "Fire" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
+                <td>@productTrackings.Where(s => s.ProcessType == "PRODUCTION" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
+                <td>@productTrackings.Where(s => s.ProcessType == "FINISHED_PRODUCTION" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
+                <td>@productTrackings.Where(s => s.ProcessType == "WASTE" && s.StockName == item.Name).Sum(a => a.Quantity)</td>
                 <td>
                     @{
-                        var buyedStockQuantity = datas.Where(s => s.ProcessType == "ALIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
-                        var salesStockQuantity = datas.Where(s => s.ProcessType == "SATIŞ" && s.ExpenseType == item.Name).Sum(a => a.Stock);
-                        var productionStockQuantity = productTrackings.Where(s => s.ProcessType == "Üretime Giden" && s.StockName == item.Name).Sum(a => a.Quantity);
+                        var buyedStockQuantity = datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        var salesStockQuantity = datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        var productionStockQuantity = productTrackings.Where(s => s.ProcessType == "PRODUCTION" && s.StockName == item.Name).Sum(a => a.Quantity);
                         remainingStock = (buyedStockQuantity - salesStockQuantity) - productionStockQuantity;
                     }
                     @remainingStock
@@ -101,7 +105,7 @@
                         else
                             remainingStockUnitAmount = unitAmount * remainingStock;
                     }
-                    @remainingStockUnitAmount
+                    @Math.Round(remainingStockUnitAmount,2)
                 </td>
             </tr>
         }

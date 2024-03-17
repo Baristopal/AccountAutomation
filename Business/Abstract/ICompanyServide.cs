@@ -9,7 +9,7 @@ public interface ICompanyService
     Task<BaseResponse<CompanyModel>> AddCompany(CompanyModel model);
     Task<BaseResponse<CompanyModel>> UpdateCompany(CompanyModel model);
     Task<BaseResponse<IEnumerable<CompanyModel>>> GetAllCompanies();
-    Task<BaseResponse<CompanyModel>> GetCompanyById(string id);
+    Task<BaseResponse<CompanyModel>> GetCompanyById(int companyId);
     Task<BaseResponse<bool>> DeleteCompanyById(string id);
     Task<BaseResponse<CompanyModel>> LoginCompany(UserForLoginDto model);
     Task<BaseResponse<CompanyModel>> GetCompanyByEmail(string email);

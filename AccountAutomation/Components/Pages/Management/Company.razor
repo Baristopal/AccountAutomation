@@ -1,9 +1,13 @@
 ﻿@page "/companies"
 
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Pages.Management.Components
 
 @inject ICompanyService companyService
 @inject IDialogService dialogService
+
+@attribute [Authorize(Roles = "Admin")]
+
 
 <PageTitle>Firma Listesi</PageTitle>
 <MudOverlay Visible="@isBusy"></MudOverlay>

@@ -57,7 +57,7 @@
                         <td>@datas[i].CurrencyTotalAmount</td>
                         <td>@datas[i].TLTotalAmount</td>
                         <td>
-                            @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE"))
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
                             {
                                 if (datas[i].CurrencyTotalAmount > 0)
                                 {
@@ -71,11 +71,11 @@
                             }
                         </td>
                         <td>
-                            @if (datas[i].ProcessType.Contains("SATIŞ") || datas[i].ProcessType.Contains("ÖDEME") || datas[i].ProcessType.Contains("ALIŞ İADE"))
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
                             {
                                 if (datas[i].CurrencyTotalAmount > 0)
                                 {
-                                    @(datas[i].Currency == "USD" ? datas[i].CurrencyTotalAmount * datas[i].USDExchange : datas[i].CurrencyTotalAmount * datas[i].EURExchange)
+                                    @(datas[i].Currency == CurrencyEnum.USD.ToString() ? datas[i].CurrencyTotalAmount * datas[i].USDExchange : datas[i].CurrencyTotalAmount * datas[i].EURExchange)
                                     ;
                                 }
                                 else
@@ -85,31 +85,31 @@
                             }
                         </td>
                         <td>
-                            @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE"))
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
                             {
                                 @datas[i].TaxAmount
                             }
                         </td>
                         <td>
-                            @if (datas[i].ProcessType.Contains("SATIŞ") || datas[i].ProcessType.Contains("ÖDEME") || datas[i].ProcessType.Contains("ALIŞ İADE"))
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
                             {
                                 @datas[i].TaxAmount
                             }
                         </td>
-                        <td>
-                            @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE") && datas[i].CurrencyTotalAmount > 0)
+                        <td>f
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()) && datas[i].CurrencyTotalAmount > 0)
                             {
                                 @datas[i].CurrencyTotalAmount
                             }
                         </td>
                         <td>
-                            @if (datas[i].ProcessType.Contains("SATIŞ") || datas[i].ProcessType.Contains("ÖDEME") || datas[i].ProcessType.Contains("ALIŞ İADE") && datas[i].CurrencyTotalAmount > 0)
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()) && datas[i].CurrencyTotalAmount > 0)
                             {
                                 @datas[i].CurrencyTotalAmount
                             }
                         </td>
                         <td>
-                            @if (datas[i].ProcessType.Contains("ALIŞ") || datas[i].ProcessType.Contains("TAHSİLAT") || datas[i].ProcessType.Contains("SATIŞ İADE"))
+                            @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
                             {
                                 TLMovement = TLMovement - datas[i].TLTotalAmount;
                                 var price = TLMovement;

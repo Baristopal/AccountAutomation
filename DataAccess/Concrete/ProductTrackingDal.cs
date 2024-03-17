@@ -12,17 +12,18 @@ public class ProductTrackingDal: IProductTrackingDal
         _noSqlHelper = noSqlHelper;
     }
 
-    public async Task<IEnumerable<ProductTrackingModel>> GetAllWithStockName()
+    public async Task<IEnumerable<ProductTrackingModel>> GetAllWithStockName(int companyId)
     {
-        string query = @"SELECT p.* FROM Data._default.ProductTracking as p WHERE p.isDeleted = false 
+        string query = @$"SELECT p.* FROM Data._default.ProductTracking as p WHERE p.isDeleted = false 
                         AND p.stockName IN(select RAW e.name From Data._default.ExpenseTypes as e where e.isStocked=true) 
+                        AND p.companyId = {companyId}
                         ORDER BY p.createdDate";
         var result = await _noSqlHelper.QueryAsync<ProductTrackingModel>(query);
         return result;
     }
-    public async Task<IEnumerable<ProductTrackingModel>> GetAll()
+    public async Task<IEnumerable<ProductTrackingModel>> GetAll(int companyId)
     {
-        string query = "SELECT p.* FROM Data._default.ProductTracking as p WHERE p.isDeleted = false ORDER BY p.createdDate";
+        string query = $"SELECT p.* FROM Data._default.ProductTracking as p WHERE p.isDeleted = false AND p.companyId = {companyId} ORDER BY p.createdDate";
         var result = await _noSqlHelper.QueryAsync<ProductTrackingModel>(query);
         return result;
     }

@@ -1,9 +1,6 @@
 ﻿using Core.Utilities;
-using Couchbase;
-using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using Entities.Concrete;
-using Entities.Models;
 
 namespace DataAccess.Concrete;
 public class CompanyDal : ICompanyDal
@@ -32,9 +29,11 @@ public class CompanyDal : ICompanyDal
         return result;
     }
 
-    public async Task<CompanyModel> GetByIdAsync(string id)
+    public async Task<CompanyModel> GetByIdAsync(int companyId)
     {
-        var result = await _noSqlHelper.GetByIdAsync<CompanyModel>(id);
+        string query = $"SELECT c.* FROM Data._default.Company as c WHERE c.isDeleted = false AND c.companyId = {companyId}";
+        var result = await _noSqlHelper.SingleOrDefaultAsync<CompanyModel>(query);
+
         return result;
     }
 
@@ -51,4 +50,4 @@ public class CompanyDal : ICompanyDal
         var result = await _noSqlHelper.SingleOrDefaultAsync<CompanyModel>(query);
         return result;
     }
-}   
+}

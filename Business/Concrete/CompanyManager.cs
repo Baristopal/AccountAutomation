@@ -5,7 +5,6 @@ using Entities.Dto;
 using Entities.Models;
 using Library.Core.Utilities.Helpers;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace Business.Concrete;
 public class CompanyManager : ICompanyService
@@ -73,17 +72,17 @@ public class CompanyManager : ICompanyService
         }
     }
 
-    public async Task<BaseResponse<CompanyModel>> GetCompanyById(string id)
+    public async Task<BaseResponse<CompanyModel>> GetCompanyById(int companyId)
     {
         try
         {
-            var result = await _companyDal.GetByIdAsync(id);
+            var result = await _companyDal.GetByIdAsync(companyId);
             return new BaseResponse<CompanyModel>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<CompanyModel>(null, false, ex.Message);
+            return new BaseResponse<CompanyModel>(new CompanyModel(), false, ex.Message);
         }
 
     }

@@ -1,9 +1,13 @@
 ﻿@page "/Defination/ExpenseType"
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Pages.Defination.Components
 
 @inject IDefinationService definationService
 @inject IDialogService dialogService
 @inject MessageboxHelper messageboxHelper
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Stok/Masraf Tipi Tanımlama</PageTitle>
 

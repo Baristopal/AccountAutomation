@@ -1,6 +1,10 @@
 ﻿@page "/Finance/Case"
+@using Microsoft.AspNetCore.Authorization
 
 @inject IDataService dataService
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Kasa</PageTitle>
 <MudOverlay Visible="@isBusy" DarkBackground="true">
@@ -32,13 +36,13 @@
                         <tr>
                             <td rowspan="2" style="border-left: 1pt solid #e0e0e0ff;">@data.SalesType</td>
                             <td style="@bottomGrayColor">
-                                @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains("TAHSİLAT"))
+                                @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
                                 {
                                     ingoingCash = outgoingCash + data.CurrencyTotalAmount;
                                     var price = ingoingCash;
                                     @price
                                 }
-                                else if (data.ProcessType.Contains("TAHSİLAT"))
+                                else if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
                                 {
                                     ingoingCash = outgoingCash + data.TLTotalAmount;
                                     var price = ingoingCash;
@@ -46,13 +50,13 @@
                                 }
                             </td>
                             <td style="@bottomGrayColor">
-                                @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains("ÖDEME"))
+                                @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
                                 {
                                     outgoingCash = outgoingCash + data.CurrencyTotalAmount;
                                     var price = outgoingCash;
                                     @price
                                 }
-                                else if (data.ProcessType.Contains("ÖDEME"))
+                                else if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
                                 {
                                     outgoingCash = outgoingCash + data.TLTotalAmount;
                                     var price = outgoingCash;
@@ -98,19 +102,19 @@
                 <td></td>
                 <td>@data.Description</td>
                 <td>
-                    @if (data.ProcessType.Contains("TAHSİLAT"))
+                    @if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
                     {
                         @price
                     }
                 </td>
                 <td>
-                    @if (data.ProcessType.Contains("ÖDEME"))
+                    @if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
                     {
                         @price
                     }
                 </td>
                 <td>
-                    @if (data.SalesType.Contains("NAKİT"))
+                    @if (data.SalesType.Contains("CASH"))
                     {
                         <MudText>@data.SalesType (@data.Currency)</MudText>
                     }
@@ -121,13 +125,13 @@
                     @data.ExpenseType
                 </td>
                 <td>
-                    @if (data.ProcessType.Contains("ÖDEME"))
+                    @if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
                     {
                         TLMovement = TLMovement - datas[i].TLTotalAmount;
                         var movement = TLMovement;
                         <MudText Color="Color.Error">@movement</MudText>
                     }
-                    else if (data.ProcessType.Contains("TAHSİLAT"))
+                    else if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
                     {
                         TLMovement = TLMovement + datas[i].TLTotalAmount;
                         var movement = TLMovement;

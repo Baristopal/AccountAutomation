@@ -8,4 +8,5 @@ public class BaseEntity
     public bool IsActive { get; set; } = true;
     public string CreatedName { get; set; }
     public string UpdatedName { get; set; }
+    public int CompanyId { get; set; }
 }

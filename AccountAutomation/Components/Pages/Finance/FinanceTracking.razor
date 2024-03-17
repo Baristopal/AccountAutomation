@@ -1,8 +1,12 @@
 ﻿@page "/Finance/FinanceTracking"
+@using Microsoft.AspNetCore.Authorization
 
 @inject IDataService dataService
 @inject MessageboxHelper messageBoxHelper
 @inject ICheckService checkService
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Finans Takip</PageTitle>
 
@@ -71,9 +75,9 @@
                 <td>
                     @{
                         string type = "";
-                        if (data.ProcessType == "ALIŞ" || data.ProcessType == "SATIŞ")
+                        if (data.ProcessType == ProcessTypeEnum.BUY.ToString() || data.ProcessType == ProcessTypeEnum.SELL.ToString())
                             type = "FATURA";
-                        else if (data.ProcessType == "TAHSİLAT" || data.ProcessType == "ÖDEME")
+                        else if (data.ProcessType == ProcessTypeEnum.COLLECT.ToString() || data.ProcessType == ProcessTypeEnum.PAY.ToString())
                             type = "ÇEK/SENET";
                     }
                     @type
@@ -134,9 +138,9 @@
         foreach (var item in cases)
         {
             double amount = 0;
-            if (item.ProcessType.Contains("TAHSİLAT"))
+            if (item.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
                 amount = +Decimal.ToDouble(item.TLTotalAmount);
-            else if (item.ProcessType.Contains("ÖDEME"))
+            else if (item.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
                 amount = -Decimal.ToDouble(item.TLTotalAmount);
 
             types.Add($"{item.SalesType} | {amount} TL");
@@ -177,8 +181,8 @@
 
         if (datas.Count > 0)
         {
-            var collectetable = datas.Where(s => s.ProcessType.Contains("ALIŞ") || s.ProcessType.Contains("ÖDEME")).Sum(s => s.TLTotalAmount);
-            var payable = datas.Where(s => s.ProcessType.Contains("SATIŞ") || s.ProcessType.Contains("TAHSİLAT")).Sum(s => s.TLTotalAmount);
+            var collectetable = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.PAY.ToString())).Sum(s => s.TLTotalAmount);
+            var payable = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString())).Sum(s => s.TLTotalAmount);
 
             values = new List<double> { Decimal.ToDouble(collectetable), Decimal.ToDouble(payable) };
             titles = new List<string> { $"Tahsil Edilecekler Toplamı {collectetable} TL", $"Ödenecekler Toplamı {payable} TL" };

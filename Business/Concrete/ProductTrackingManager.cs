@@ -1,7 +1,9 @@
 ﻿using Business.Abstract;
+using Core.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Business.Concrete;
@@ -9,17 +11,21 @@ public class ProductTrackingManager : IProductTrackingService
 {
     private readonly IProductTrackingDal _productTrackingDal;
     private readonly ILogger<ProductTrackingManager> _logger;
-    public ProductTrackingManager(IProductTrackingDal productTrackingDal, ILogger<ProductTrackingManager> logger)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly int _companyId;
+    public ProductTrackingManager(IProductTrackingDal productTrackingDal, ILogger<ProductTrackingManager> logger, IHttpContextAccessor httpContextAccessor)
     {
         _productTrackingDal = productTrackingDal;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _companyId = httpContextAccessor.GetCompanyId();
     }
 
     public async Task<BaseResponse<IEnumerable<ProductTrackingModel>>> GetAllProductTrackingWithStockName()
     {
         try
         {
-            var result = await _productTrackingDal.GetAllWithStockName();
+            var result = await _productTrackingDal.GetAllWithStockName(_companyId);
             return new BaseResponse<IEnumerable<ProductTrackingModel>>(result, true);
         }
         catch (Exception ex)
@@ -33,6 +39,7 @@ public class ProductTrackingManager : IProductTrackingService
     {
         try
         {
+            model.CompanyId = _companyId;
             await _productTrackingDal.Insert(model);
             return new BaseResponse<ProductTrackingModel>(model, true);
         }
@@ -47,7 +54,7 @@ public class ProductTrackingManager : IProductTrackingService
     {
         try
         {
-            var result = await _productTrackingDal.GetAll();
+            var result = await _productTrackingDal.GetAll(_companyId);
             return new BaseResponse<IEnumerable<ProductTrackingModel>>(result, true);
         }
         catch (Exception ex)

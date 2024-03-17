@@ -1,7 +1,6 @@
 ﻿using Core.Utilities;
 using DataAccess.Abstract;
 using Entities.Concrete;
-using MongoDB.Driver;
 
 namespace DataAccess.Concrete;
 public class PersonnelDal : IPersonnelDal
@@ -13,9 +12,9 @@ public class PersonnelDal : IPersonnelDal
         _nosqlHelper = noSqlHelper;
     }
 
-    public async Task<IEnumerable<PersonnelModel>> GetAll()
+    public async Task<IEnumerable<PersonnelModel>> GetAll(int companyId)
     {
-        string query = "SELECT p.* FROM Data._default.Personnel as p WHERE p.isDeleted = false ORDER BY p.createdDate DESC";
+        string query = $"SELECT p.* FROM Data._default.Personnel as p WHERE p.isDeleted = false AND p.companyId = {companyId} ORDER BY p.createdDate DESC";
         var result = await _nosqlHelper.QueryAsync<PersonnelModel>(query);
         return result;
     }
@@ -28,12 +27,12 @@ public class PersonnelDal : IPersonnelDal
 
     public async Task Insert(PersonnelModel model)
     {
-        await _nosqlHelper.InsertAsync(model.Id,model);
+        await _nosqlHelper.InsertAsync(model.Id, model);
     }
 
     public async Task Update(PersonnelModel model)
     {
-        await _nosqlHelper.UpdateAsync(model.Id,model);
+        await _nosqlHelper.UpdateAsync(model.Id, model);
     }
 
 }

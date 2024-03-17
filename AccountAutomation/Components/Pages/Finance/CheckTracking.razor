@@ -1,9 +1,13 @@
 ﻿@page "/Finance/Checks";
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Pages.Finance.Components
 
 @inject ICheckService checkService;
 @inject MessageboxHelper messageboxHelper;
 @inject IDialogService dialogService;
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Çek Takip</PageTitle>
 

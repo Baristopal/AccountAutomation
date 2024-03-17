@@ -1,12 +1,16 @@
 ﻿@page "/data/data-entry"
 @using Business.Enums
 @using Entities.Dto
+@using Microsoft.AspNetCore.Authorization
 
 @inject IDataService dataService
 @inject IDefinationService definationService
 @inject IInstantService instantService
 
+@attribute [Authorize(Roles ="COMPANY,ADMIN")]
+
 <PageTitle>Veri Girişi</PageTitle>
+
 
 <MudOverlay Visible="@isBusy" DarkBackground="true">
     <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
@@ -162,20 +166,21 @@
             data.CurrencyTotalAmount = dataEntry.CurrencyTotalAmount;
             data.TLTotalAmount = dataEntry.TLTotalAmount;
 
-            if (data.Currency == "USD")
+            if (data.Currency == CurrencyEnum.USD.ToString())
                 data.TLTotalAmount = data.CurrencyTotalAmount * data.USDExchange;
-            else if (data.Currency == "EUR")
+            else if (data.Currency == CurrencyEnum.EUR.ToString())
                 data.TLTotalAmount = data.CurrencyTotalAmount * data.EURExchange;
 
             var result = await dataService.AddData(data);
             if (result.Success)
             {
-                dataEntries.Clear();
                 dataCount = 1;
                 data.Id = Guid.NewGuid().ToString();
             }
 
         }
+        dataEntries.Clear();
+        StateHasChanged();
 
         isBusy = false;
     }

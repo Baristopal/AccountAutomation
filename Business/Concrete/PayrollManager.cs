@@ -2,24 +2,28 @@
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace Business.Concrete;
 public class PayrollManager : IPayrollService
 {
     private readonly IPayrollDal _payrollDal;
     private readonly ILogger<PayrollManager> _logger;
-    public PayrollManager(IPayrollDal payrollDal, ILogger<PayrollManager> logger)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly int _companyId;
+    public PayrollManager(IPayrollDal payrollDal, ILogger<PayrollManager> logger, IHttpContextAccessor httpContextAccessor)
     {
         _payrollDal = payrollDal;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<BaseResponse<PayrollModel>> InsertAsync(PayrollModel model)
     {
         try
         {
+            model.CompanyId = _companyId;
             await _payrollDal.InsertAsync(model);
             return new BaseResponse<PayrollModel>(model, true);
         }
@@ -49,13 +53,13 @@ public class PayrollManager : IPayrollService
     {
         try
         {
-            var result = await _payrollDal.GetAllAsync();
+            var result = await _payrollDal.GetAllAsync(_companyId);
             return new BaseResponse<IEnumerable<PayrollModel>>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<PayrollModel>>(null, false, ex.Message);
+            return new BaseResponse<IEnumerable<PayrollModel>>([], false, ex.Message);
         }
     }
 
@@ -69,22 +73,9 @@ public class PayrollManager : IPayrollService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<PayrollModel>(null, false, ex.Message);
+            return new BaseResponse<PayrollModel>(new PayrollModel(), false, ex.Message);
         }
     }
 
-    public async Task<BaseResponse> DeleteByIdAsync(string id)
-    {
-        try
-        {
-            await _payrollDal.DeleteByIdAsync(id);
-            return new BaseResponse(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse(false, ex.Message);
-        }
-    }
 
 }

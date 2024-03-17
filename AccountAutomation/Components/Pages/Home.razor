@@ -1,6 +1,37 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
+@attribute [Authorize]
 
 <PageTitle>Home</PageTitle>
 
+<AuthorizeView>
+    <NotAuthorized>
+        <p>Giriş yapmadınız.</p>
+    </NotAuthorized>
+    <Authorized>
+        <p>Merhaba, @context.User.FindFirstValue(ClaimTypes.Name)!</p>
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    [CascadingParameter]
+    public Task<AuthenticationState> authenticationStateTask { get; set; } = default!;
+
+    private int userId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        var user = authState.User;
+        //AuthorizeView içerisindeli context.User.FindFirstValue(ClaimTypes.GivenName) ile aynı işi yapar
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            userId = Convert.ToInt32(user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
+
+        }
+    }
+}

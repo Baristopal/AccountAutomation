@@ -1,0 +1,14 @@
+﻿<div class="error">
+    Something went wrong!
+    <details>
+        <summary>Expand for exception</summary>
+        @Error
+    </details>
+</div>
+
+@code {
+
+
+    [Parameter]
+    public Exception Error { get; set; }
+}

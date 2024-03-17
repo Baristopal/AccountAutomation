@@ -1,6 +1,4 @@
 ﻿using Core.Utilities;
-using Couchbase;
-using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using Entities.Concrete;
 
@@ -25,9 +23,9 @@ public class PayrollDal : IPayrollDal
         await _noSqlHelper.UpdateAsync(model.Id, model);
     }
 
-    public async Task<IEnumerable<PayrollModel>> GetAllAsync()
+    public async Task<IEnumerable<PayrollModel>> GetAllAsync(int companyId)
     {
-        string query = "SELECT p.* FROM Data._default.Payroll as p WHERE p.isDeleted = false ORDER BY p.createdDate DESC";
+        string query = $"SELECT p.* FROM Data._default.Payroll as p WHERE p.isDeleted = false AND p.companyId = {companyId} ORDER BY p.createdDate DESC";
         var result = await _noSqlHelper.QueryAsync<PayrollModel>(query);
         return result;
     }
@@ -36,11 +34,5 @@ public class PayrollDal : IPayrollDal
     {
         var result = await _noSqlHelper.GetByIdAsync<PayrollModel>(id);
         return result;
-    }
-
-    public async Task DeleteByIdAsync(string id)
-    {
-        string query = $"UPDATE Data._default.Payroll as p SET p.isDeleted = true WHERE p.isDeleted = false AND p.id = {id}";
-        await _noSqlHelper.ExecuteAsyncV2(query);
     }
 }

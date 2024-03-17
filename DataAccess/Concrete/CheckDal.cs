@@ -1,12 +1,13 @@
-﻿using Core.Utilities;
+﻿using Core.Extensions;
+using Core.Utilities;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Microsoft.AspNetCore.Http;
 
 namespace DataAccess.Concrete;
 public class CheckDal : ICheckDal
 {
     private readonly INoSqlHelper _noSqlHelper;
-
     public CheckDal(INoSqlHelper noSqlHelper)
     {
         _noSqlHelper = noSqlHelper;
@@ -22,9 +23,9 @@ public class CheckDal : ICheckDal
         await _noSqlHelper.UpdateAsync(model.Id, model);
     }
 
-    public async Task<IEnumerable<CheckModel>> GetAll()
+    public async Task<IEnumerable<CheckModel>> GetAll(int companyId)
     {
-        string query = "SELECT c.* FROM Data._default.Check as c WHERE c.isDeleted = false ORDER BY c.createdDate";
+        string query = $"SELECT c.* FROM Data._default.Check as c WHERE c.isDeleted = false AND c.companyId = {companyId} ORDER BY c.createdDate";
         var result = await _noSqlHelper.QueryAsync<CheckModel>(query);
         return result;
     }
@@ -35,9 +36,9 @@ public class CheckDal : ICheckDal
         return result;
     }
 
-    public async Task<decimal> GetChecksTotalAmount(string processType)
+    public async Task<decimal> GetChecksTotalAmount(string processType, int companyId)
     {
-        string query = @$"SELECT RAW c.price FROM Data._default.Check as c WHERE c.isDeleted = false AND c.processType = '{processType}'";
+        string query = @$"SELECT RAW c.price FROM Data._default.Check as c WHERE c.isDeleted = false AND c.processType = '{processType}' AND c.companyId={companyId}";
         var result = await _noSqlHelper.SingleOrDefaultAsync<decimal>(query);
         return result;
     }

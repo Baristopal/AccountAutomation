@@ -22,12 +22,12 @@ public class DefinationDal : IDefinationDal
         await _noSqlHelper.UpdateAsync(documentId, model);
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync<T>()
+    public async Task<IEnumerable<T>> GetAllAsync<T>(int companyId)
     {
         Type type = typeof(T);
         var model = Activator.CreateInstance(type);
         var collection = model?.GetType()?.CustomAttributes?.FirstOrDefault()?.ConstructorArguments?.LastOrDefault().Value?.ToString();
-        string query = $"SELECT c.* FROM Data._default.{collection} as c WHERE c.isDeleted = false ORDER BY c.createdDate";
+        string query = $"SELECT c.* FROM Data._default.{collection} as c WHERE c.isDeleted = false AND c.companyId = {companyId} ORDER BY c.createdDate";
         var result = await _noSqlHelper.QueryAsync<T>(query);
         return result;
     }
@@ -38,9 +38,9 @@ public class DefinationDal : IDefinationDal
         return result;
     }
 
-    public async Task<IEnumerable<ExpenseTypeModel>> GetAllStockExpenses()
+    public async Task<IEnumerable<ExpenseTypeModel>> GetAllStockExpenses(int companyId)
     {
-        string query = "SELECT c.* FROM Data._default.ExpenseTypes as c WHERE c.isDeleted = false AND c.isStocked = true ORDER BY c.createdDate";
+        string query = $"SELECT c.* FROM Data._default.ExpenseTypes as c WHERE c.isDeleted = false AND c.isStocked = true AND c.companyId = {companyId} ORDER BY c.createdDate";
         var result = await _noSqlHelper.QueryAsync<ExpenseTypeModel>(query);
         return result;
     } 

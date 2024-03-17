@@ -1,7 +1,9 @@
 ﻿using Business.Abstract;
+using Core.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Business.Concrete;
@@ -9,17 +11,21 @@ public class InstantManager : IInstantService
 {
     private readonly IInstantDal _instantDal;
     private readonly ILogger<InstantManager> _logger;
-
-    public InstantManager(IInstantDal instantDal, ILogger<InstantManager> logger)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly int _companyId;
+    public InstantManager(IInstantDal instantDal, ILogger<InstantManager> logger, IHttpContextAccessor httpContextAccessor)
     {
         _instantDal = instantDal;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _companyId = httpContextAccessor.GetCompanyId();
     }
 
     public async Task<BaseResponse<InstantModel>> AddInstant(InstantModel model)
     {
         try
         {
+            model.CompanyId = _companyId;
             await _instantDal.Add(model);
             return new BaseResponse<InstantModel>(model, true);
         }
@@ -48,13 +54,13 @@ public class InstantManager : IInstantService
     {
         try
         {
-            var result = await _instantDal.GetAll();
+            var result = await _instantDal.GetAll(_companyId);
             return new BaseResponse<IEnumerable<InstantModel>>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<InstantModel>>(new List<InstantModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<InstantModel>>([], false, ex.Message);
         }
     }
 

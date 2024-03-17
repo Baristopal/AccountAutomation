@@ -1,21 +1,26 @@
 ﻿using Business.Abstract;
+using Core.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Dto;
 using Entities.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace Business.Concrete;
 public class DataManager : IDataService
 {
     private readonly IDataDal _dataDal;
     private readonly ILogger<DataManager> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly int _companyId;
 
-    public DataManager(IDataDal dataDal, ILogger<DataManager> logger)
+    public DataManager(IDataDal dataDal, ILogger<DataManager> logger, IHttpContextAccessor httpContextAccessor)
     {
         _dataDal = dataDal;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _companyId = httpContextAccessor.GetCompanyId();
     }
 
 
@@ -23,7 +28,7 @@ public class DataManager : IDataService
     {
         try
         {
-            var result = await _dataDal.GetAll(searchKeys);
+            var result = await _dataDal.GetAll(searchKeys, _companyId);
             return new BaseResponse<IEnumerable<DataModel>>(result, true);
         }
         catch (Exception ex)
@@ -39,7 +44,7 @@ public class DataManager : IDataService
 
         try
         {
-            var result = await _dataDal.GetAll(searchDto);
+            var result = await _dataDal.GetAll(searchDto, _companyId);
             return new BaseResponse<IEnumerable<DataModel>>(result, true);
         }
         catch (Exception ex)
@@ -53,6 +58,7 @@ public class DataManager : IDataService
     {
         try
         {
+            model.CompanyId = _companyId;
             await _dataDal.Insert(model);
             return new BaseResponse<DataModel>(model, true);
         }
@@ -87,7 +93,7 @@ public class DataManager : IDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<DataModel>(null, false, ex.Message);
+            return new BaseResponse<DataModel>(new DataModel(), false, ex.Message);
         }
     }
 
@@ -95,13 +101,13 @@ public class DataManager : IDataService
     {
         try
         {
-            var result = await _dataDal.GetCase();
+            var result = await _dataDal.GetCase(_companyId);
             return new BaseResponse<IEnumerable<CaseModel>>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<CaseModel>>(null, false, ex.Message);
+            return new BaseResponse<IEnumerable<CaseModel>>([], false, ex.Message);
         }
     }
 
@@ -109,13 +115,13 @@ public class DataManager : IDataService
     {
         try
         {
-            var result = await _dataDal.GetAllDataWithStockExpenses();
+            var result = await _dataDal.GetAllDataWithStockExpenses(_companyId);
             return new BaseResponse<IEnumerable<DataModel>>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<DataModel>>(new List<DataModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>([], false, ex.Message);
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using Business.Abstract;
+using Core.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Business.Concrete;
@@ -9,17 +11,22 @@ public class CheckManager : ICheckService
 {
     private readonly ICheckDal _checkDal;
     private readonly ILogger<CheckManager> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly int _companyId;
 
-    public CheckManager(ICheckDal checkDal, ILogger<CheckManager> logger)
+    public CheckManager(ICheckDal checkDal, ILogger<CheckManager> logger, IHttpContextAccessor httpContextAccessor)
     {
         _checkDal = checkDal;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _companyId = httpContextAccessor.GetCompanyId();
     }
 
     public async Task<BaseResponse<CheckModel>> AddCheck(CheckModel model)
     {
         try
         {
+            model.CompanyId = _companyId;
             await _checkDal.Add(model);
             return new BaseResponse<CheckModel>(model, true);
         }
@@ -48,7 +55,7 @@ public class CheckManager : ICheckService
     {
         try
         {
-            var result = await _checkDal.GetAll();
+            var result = await _checkDal.GetAll(_companyId);
             return new BaseResponse<IEnumerable<CheckModel>>(result, true);
         }
         catch (Exception ex)
@@ -76,7 +83,7 @@ public class CheckManager : ICheckService
     {
         try
         {
-            var result = await _checkDal.GetChecksTotalAmount(processType);
+            var result = await _checkDal.GetChecksTotalAmount(processType, _companyId);
             return new BaseResponse<decimal>(result, true);
         }
         catch (Exception ex)

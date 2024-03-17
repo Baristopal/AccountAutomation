@@ -19,9 +19,9 @@ public class DataDal : IDataDal
         await _noSqlHelper.InsertAsync(model.Id, model);
     }
 
-    public async Task<IEnumerable<DataModel>> GetAll(FinanceTrackingSearchDto searchKeys)
+    public async Task<IEnumerable<DataModel>> GetAll(FinanceTrackingSearchDto searchKeys, int companyId)
     {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new();
 
         stringBuilder.Append("SELECT d.* FROM Data._default.Data as d WHERE d.isDeleted = false");
 
@@ -29,6 +29,7 @@ public class DataDal : IDataDal
         {
             stringBuilder.Append($" AND (d.maturityDate BETWEEN '{searchKeys.StartDate?.ToString("yyyy-MM-dd")}T00:00:00.0' AND '{searchKeys.EndDate?.ToString("yyyy-MM-dd")}T23:59:00.0')");
         }
+        stringBuilder.Append($" AND d.companyId = {companyId}");
 
         stringBuilder.Append(" ORDER BY DATE_FORMAT_STR(d.createdDate, '1111-11-11T00:00:00Z')");
 
@@ -48,9 +49,9 @@ public class DataDal : IDataDal
         return await _noSqlHelper.GetByIdAsync<DataModel>(id);
     }
 
-    public async Task<IEnumerable<CaseModel>> GetCase()
+    public async Task<IEnumerable<CaseModel>> GetCase(int companyId)
     {
-        string query = @"SELECT 
+        string query = @$"SELECT 
                         d.processDate
                         ,d.description
                         ,d.processType
@@ -62,15 +63,16 @@ public class DataDal : IDataDal
                         FROM Data._default.Data AS d 
                         WHERE d.isDeleted = FALSE
                         AND d.processType IN['ÖDEME','TAHSİLAT']
+                        AND d.companyId = {companyId}
                         ORDER BY DATE_FORMAT_STR(d.createDate, '1111-11-11T00:00:00Z')";
 
         var result = await _noSqlHelper.QueryAsync<CaseModel>(query);
         return result;
     }
 
-    public async Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses()
+    public async Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses(int companyId)
     {
-        string query = @"select d.* From Data._default.Data as d where d.isDeleted=false 
+        string query = @$"select d.* From Data._default.Data as d where d.isDeleted=false AND d.companyId={companyId}
                         AND d.expenseType IN(select RAW e.name From Data._default.ExpenseTypes as e where e.isStocked=true)";
 
         var result = await _noSqlHelper.QueryAsync<DataModel>(query);

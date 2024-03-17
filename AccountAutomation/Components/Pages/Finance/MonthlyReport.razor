@@ -1,11 +1,14 @@
 ﻿@page "/Finance/MonthlyReport"
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Pages.Finance.Components
-
 
 @inject IDefinationService definationService
 @inject IDataService dataService
 @inject MessageboxHelper messageboxHelper
 @inject IDialogService dialogService
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Aylık Rapor</PageTitle>
 
@@ -73,20 +76,20 @@
                         <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">Gider Toplam</MudText> </strong></td>
                         @for (int i = 1; i <= 12; i++)
                         {
-                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains("SATIŞ") == false).Sum(s => s.TLTotalAmount), 2);
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false).Sum(s => s.TLTotalAmount), 2);
                             <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
                         }
-                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.IsStocked == false && s.ProcessType.Contains("SATIŞ") == false).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.IsStocked == false && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
                         </tr>
 
                         <tr>
                             <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">Satış Toplam</MudText> </strong></td>
                             @for (int i = 1; i <= 12; i++)
                         {
-                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ")).Sum(s => s.TLTotalAmount), 2);
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString())).Sum(s => s.TLTotalAmount), 2);
                             <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
                         }
-                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString())).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
 
                         </tr>
 
@@ -126,10 +129,10 @@
 
                             @for (int i = 1; i <= 12; i++)
                         {
-                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2);
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2);
                             <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
                         }
-                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
                         </tr>
 
                         <tr>
@@ -138,10 +141,10 @@
 
                             @for (int i = 1; i <= 12; i++)
                         {
-                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2);
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2);
                             <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
                         }
-                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
+                        <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
                         </tr>
 
                         <tr>
@@ -150,8 +153,8 @@
                             decimal yearlyTotalAmount = 0;
                             for (int i = 1; i <= 12; i++)
                             {
-                                var totalAmount = (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ")).Sum(s => s.TLTotalAmount), 2) -
-                                Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains("SATIŞ") == false).Sum(s => s.TLTotalAmount), 2)) + (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2) - Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains("SATIŞ") == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2));
+                                var totalAmount = (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString())).Sum(s => s.TLTotalAmount), 2) -
+                                Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false).Sum(s => s.TLTotalAmount), 2)) + (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2) - Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2));
 
                                 yearlyTotalAmount = +totalAmount;
                                 <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText>@totalAmount</MudText></strong> </td>
@@ -190,23 +193,23 @@
                                 <td>Satış KDV</td>
                                 @for (int i = 1; i <= 12; i++)
                                 {
-                                    var taxAmount = Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2);
+                                    var taxAmount = Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2);
                                     <td>
                                         @taxAmount
                                     </td>
                                 }
-                                <td>@Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ")).Sum(s => s.TaxAmount), 2)</td>
+                                <td>@Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString())).Sum(s => s.TaxAmount), 2)</td>
                             </tr>
                             <tr>
                                 <td>Alış KDV</td>
                                 @for (int i = 1; i <= 12; i++)
                                 {
-                                    var taxAmount = Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2);
+                                    var taxAmount = Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2);
                                     <td>
                                         @taxAmount
                                     </td>
                                 }
-                                <td>@Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ")).Sum(s => s.TaxAmount), 2)</td>
+                                <td>@Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString())).Sum(s => s.TaxAmount), 2)</td>
                             </tr>
                             @if (transferredTax.Any())
                             {
@@ -329,8 +332,8 @@
                                 @for (int i = 1; i <= 4; i++)
                                 {
                                     int index = i;
-                                    var totalTaxAmount = datas.Where(s => s.ProcessType.Contains("ALIŞ")).Select(s => s.TaxAmount).ToList();
-                                    var totalAmount = datas.Where(s => s.IsStocked == false && s.ProcessType.Contains("SATIŞ")).Select(s => s.TLTotalAmount).ToList();
+                                    var totalTaxAmount = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString())).Select(s => s.TaxAmount).ToList();
+                                    var totalAmount = datas.Where(s => s.IsStocked == false && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString())).Select(s => s.TLTotalAmount).ToList();
                                     int takeItem = index * 3;
                                     decimal amount = 0;
 
@@ -344,16 +347,16 @@
                             </tr>
                             <tr>
                                 <td>
-                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 1 && s.ProcessDate.Value.Month == 2 && s.ProcessDate.Value.Month == 3).Sum(s => s.TaxAmount), 2)
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) && s.ProcessDate.Value.Month == 1 && s.ProcessDate.Value.Month == 2 && s.ProcessDate.Value.Month == 3).Sum(s => s.TaxAmount), 2)
                                 </td>
                                 <td>
-                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 4 && s.ProcessDate.Value.Month == 5 && s.ProcessDate.Value.Month == 6).Sum(s => s.TaxAmount), 2)
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) && s.ProcessDate.Value.Month == 4 && s.ProcessDate.Value.Month == 5 && s.ProcessDate.Value.Month == 6).Sum(s => s.TaxAmount), 2)
                                 </td>
                                 <td>
-                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 7 && s.ProcessDate.Value.Month == 8 && s.ProcessDate.Value.Month == 9).Sum(s => s.TaxAmount), 2)
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) && s.ProcessDate.Value.Month == 7 && s.ProcessDate.Value.Month == 8 && s.ProcessDate.Value.Month == 9).Sum(s => s.TaxAmount), 2)
                                 </td>
                                 <td>
-                                    @Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == 10 && s.ProcessDate.Value.Month == 11 && s.ProcessDate.Value.Month == 12).Sum(s => s.TaxAmount), 2)
+                                    @Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) && s.ProcessDate.Value.Month == 10 && s.ProcessDate.Value.Month == 11 && s.ProcessDate.Value.Month == 12).Sum(s => s.TaxAmount), 2)
                                 </td>
                             </tr>
                         </tbody>
@@ -439,8 +442,8 @@
         for (int i = 1; i <= 12; i++)
         {
             var amount = (transferredTax.FirstOrDefault(s => s.Key == i).Value +
-                            Math.Round(datas.Where(s => s.ProcessType.Contains("ALIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2) -
-                            Math.Round(datas.Where(s => s.ProcessType.Contains("SATIŞ") && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2)) +
+                            Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2) -
+                            Math.Round(datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) && s.ProcessDate.Value.Month == i).Sum(s => s.TaxAmount), 2)) +
                             paidTax.FirstOrDefault(s => s.Key == i).Value;
 
             calculatedTax.Add(amount);

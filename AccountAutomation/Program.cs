@@ -7,13 +7,16 @@ using DataAccess.Abstract;
 using DataAccess.Concrete;
 using Entities.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using Serilog;
 using Serilog.Sinks.Datadog.Logs;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Globalization;
+using WebUI.Authentication;
 using WebUI.Services;
 using WebUI.Utilities.Helpers;
+using static Utilities.Extensions.DependencyInjectionExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,33 +61,39 @@ Log.Logger = new LoggerConfiguration()
 #endregion
 
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-})
-.AddCookie(options =>
-{
-    options.LoginPath = "/Auth/Login";
-    options.LogoutPath = "/Auth/Logout";
-    options.AccessDeniedPath = "/Auth/Forbidden";
-    options.ReturnUrlParameter = "returnUrl";
-    options.Cookie.Name = "AccountantAutomation.Auth";
-    options.Cookie.Path = "/";
-    options.Cookie.HttpOnly = true;
-});
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.ExpireTimeSpan = TimeSpan.FromHours(2);
+        options.SlidingExpiration = true;
+        options.ReturnUrlParameter = "returnUrl";
+    });
+
+
+
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+
+
+
 
 builder.Host.UseSerilog();
 
 builder.Services.AddAuthorization();
-builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 builder.Services.AddMudServices();
 
+ServiceTool.Create(builder.Services);
 
 #region IoC
 builder.Services.AddScoped<IPayrollService, PayrollManager>();
@@ -108,6 +117,7 @@ builder.Services.AddScoped<ICheckService, CheckManager>();
 builder.Services.AddScoped<IInstantDal, InstantDal>();
 builder.Services.AddScoped<IInstantService, InstantManager>();
 
+
 #endregion
 
 var culture = new CultureInfo("tr-TR", true);
@@ -125,11 +135,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
+app.UseCookiePolicy();
+app.UseAuthentication();
+
+
+
 app.UseAntiforgery();
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();

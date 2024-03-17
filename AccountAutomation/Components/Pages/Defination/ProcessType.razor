@@ -1,8 +1,12 @@
 ﻿@page "/Defination/ProcessType"
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Pages.Defination.Components
 
 @inject IDefinationService definationService
 @inject IDialogService dialogService
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <MudOverlay Visible="@isBusy" DarkBackground="true">
     <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />

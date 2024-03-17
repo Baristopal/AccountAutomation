@@ -9,6 +9,4 @@ public interface IPayrollService
     Task<BaseResponse<PayrollModel>> UpdateAsync(PayrollModel model);
     Task<BaseResponse<IEnumerable<PayrollModel>>> GetAllAsync();
     Task<BaseResponse<PayrollModel>> GetByIdAsync(string id);
-    Task<BaseResponse> DeleteByIdAsync(string id);
-
 }

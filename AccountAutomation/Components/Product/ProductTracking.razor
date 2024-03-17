@@ -1,12 +1,16 @@
 ﻿@page "/ProductTracking"
 
 @using Business.Concrete
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Product.Components
 
 
 @inject IProductTrackingService productTrackingService
 @inject MessageboxHelper messageboxHelper
 @inject IDialogService dialogService
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Üretim Takip</PageTitle>
 
@@ -54,7 +58,24 @@
                     int index = i;
                     var item = productTrackings[index];
                     <tr>
-                        <td>@item.ProcessType</td>
+                        <td>
+                            @{
+                                string type = "";
+                                switch(item.ProcessType)
+                                {
+                                    case "PRODUCTION":
+                                        type = "Üretime Giden";
+                                        break;
+                                    case "FINISHED_PRODUCTION":
+                                        type = "Üretimden Gelen";
+                                        break;
+                                    case "WASTE":
+                                        type = "Fire";
+                                        break;
+                                }
+                            }
+                            @type
+                        </td>
                         <td>@item.ProcessDate</td>
                         <td>@item.DeliveryDate</td>
                         <td>@item.InvoiceNumber</td>

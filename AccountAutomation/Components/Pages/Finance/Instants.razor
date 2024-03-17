@@ -1,9 +1,13 @@
 ﻿@page "/Finance/Instants"
+@using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Pages.Finance.Components
 
 @inject IInstantService instantService;
 @inject MessageboxHelper messageboxHelper;
 @inject IDialogService dialogService;
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
 
 <PageTitle>Cari Bakiye</PageTitle>
 
