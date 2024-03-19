@@ -9,4 +9,5 @@ public interface IDefinationDal
     Task<IEnumerable<T>> GetAllAsync<T>(int companyId);
     Task<T> GetByIdAsync<T>(string id);
     Task<IEnumerable<ExpenseTypeModel>> GetAllStockExpenses(int companyId);
+    Task<IEnumerable<ExpenseTypeModel>> GetExpenseListTypes(int companyId);
 }

@@ -7,4 +7,5 @@ public class ExpenseTypeModel : BaseEntity
 {
     public string Name { get; set; }
     public bool IsStocked { get; set; } = false;
+    public bool IsShowInExpenseListPage { get; set; } = false;
 }

@@ -1,0 +1,93 @@
+﻿@page "/Defination/ExpenseListTypes"
+@using Microsoft.AspNetCore.Authorization
+@using WebUI.Components.Pages.Defination.Components
+
+@inject IDefinationService definationService
+@inject IDialogService dialogService
+@inject MessageboxHelper messageboxHelper
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
+
+<PageTitle>Gider Listesi Tipleri</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-3 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Gider Listesi Tipleri</MudText>
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="@(()=> EditProcessType(new ExpenseTypeModel()))" Color="Color.Primary" />
+</MudStack>
+
+<MudSimpleTable Dense=true Striped=true Hover=true FixedHeader=true>
+    <thead>
+        <tr>
+            <th width="90%">Tip</th>
+            <th width="10%">İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in expenseTypes)
+        {
+            <tr>
+                <td width="90%">@item.Name</td>
+                <td width="10%">
+                    <MudIconButton Icon="@Icons.Material.Filled.Update" Color="Color.Primary" OnClick="@(()=> EditProcessType(item))">Düzenle</MudIconButton>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(()=> DeleteProcessType(item))">Sil</MudIconButton>
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    private bool isBusy = false;
+
+    private List<ExpenseTypeModel> expenseTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetExpenseTypes();
+        isBusy = false;
+    }
+
+    private async Task GetExpenseTypes()
+    {
+        expenseTypes = (await definationService.GetExpenseListTypes()).Data.ToList();
+    }
+
+    private async Task EditProcessType(ExpenseTypeModel model)
+    {
+        bool isNew = string.IsNullOrEmpty(model?.Name) == false || model?.Name?.Length > 0 ? false : true;
+        bool isExpenseListType = true;
+
+        DialogParameters parameters = new();
+        parameters.Add("expenseType", model);
+        parameters.Add("isNew", isNew);
+        parameters.Add("isExpenseListType", isExpenseListType);
+        var dialog = dialogService.Show<EditExpenseType>("Gider Listesi Tipi Tanımlama", parameters: parameters, options: MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            await GetExpenseTypes();
+        }
+    }
+
+    private async Task DeleteProcessType(ExpenseTypeModel model)
+    {
+        var isDeleted = await messageboxHelper.ShowDialog("Uyarı!", "Silinecek, emin misiniz?");
+        if (isDeleted == true)
+        {
+            model.IsDeleted = true;
+            var result = await definationService.Update(model.Id, model);
+            if (result.Success)
+            {
+                expenseTypes.Remove(model);
+                StateHasChanged();
+            }
+        }
+    }
+
+}

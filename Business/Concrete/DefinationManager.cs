@@ -54,6 +54,20 @@ public class DefinationManager : IDefinationService
 
     }
 
+    public async Task<BaseResponse<IEnumerable<ExpenseTypeModel>>> GetExpenseListTypes()
+    {
+        try
+        {
+            var result = await _definationDal.GetExpenseListTypes(_companyId);
+            return new BaseResponse<IEnumerable<ExpenseTypeModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<ExpenseTypeModel>>([],false, ex.Message);
+        }
+    }
+
     public async Task<BaseResponse<IEnumerable<T>>> GetAll<T>()
     {
         try

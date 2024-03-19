@@ -15,7 +15,6 @@
     <Routes @rendermode="@RenderModeForPage" />
     <script src="_framework/blazor.web.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
-
 </body>
 
 </html>
@@ -25,6 +24,9 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Auth") ? null : InteractiveServer;
+    private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Auth") ? null : new InteractiveServerRenderMode(prerender:true);
+    // private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Auth") ? null : InteractiveServer;
+    // private IComponentRenderMode? RenderModeForPage =>HttpContext.GetEndpoint()?.Metadata.GetMetadata<RenderModeAttribute>()?.Mode;
 
+    private object asd => RenderModeForPage;
 }

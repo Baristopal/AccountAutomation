@@ -1,6 +1,7 @@
 ﻿using Core.Utilities;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using Grpc.Core;
 
 namespace DataAccess.Concrete;
 public class DefinationDal : IDefinationDal
@@ -27,8 +28,15 @@ public class DefinationDal : IDefinationDal
         Type type = typeof(T);
         var model = Activator.CreateInstance(type);
         var collection = model?.GetType()?.CustomAttributes?.FirstOrDefault()?.ConstructorArguments?.LastOrDefault().Value?.ToString();
-        string query = $"SELECT c.* FROM Data._default.{collection} as c WHERE c.isDeleted = false AND c.companyId = {companyId} ORDER BY c.createdDate";
+        string query = $"SELECT c.* FROM Data._default.{collection} as c WHERE c.isDeleted = false AND c.companyId = {companyId} {(type.Name == "ExpenseTypeModel" ? " AND c.isShowInExpenseListPage = false" : "")} ORDER BY c.createdDate";
         var result = await _noSqlHelper.QueryAsync<T>(query);
+        return result;
+    }
+
+    public async Task<IEnumerable<ExpenseTypeModel>> GetExpenseListTypes(int companyId)
+    {
+        string query = $"SELECT c.* FROM Data._default.ExpenseTypes as c WHERE c.isDeleted = false AND c.companyId = {companyId} AND c.isShowInExpenseListPage = true ORDER BY c.createdDate";
+        var result = await _noSqlHelper.QueryAsync<ExpenseTypeModel>(query);
         return result;
     }
 

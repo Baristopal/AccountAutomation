@@ -5,7 +5,6 @@ using Core.Utilities.Helpers;
 using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using DataAccess.Concrete;
-using Entities.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
@@ -18,14 +17,13 @@ using WebUI.Services;
 using WebUI.Utilities.Helpers;
 using static Utilities.Extensions.DependencyInjectionExtensions;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 #region database
-
-builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettigns"));
 
 builder.Services.AddCouchbase(opt =>
 {
@@ -65,7 +63,6 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomRevalidatingAuthenticationStateProvider>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 
-
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -78,11 +75,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 
 
-
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
-
-
 
 
 builder.Host.UseSerilog();
@@ -137,9 +131,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCookiePolicy();
-app.UseAuthentication();
-
-
 
 app.UseAntiforgery();
 

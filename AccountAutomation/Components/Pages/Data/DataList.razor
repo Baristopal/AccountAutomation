@@ -2,8 +2,14 @@
 @using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Components
 
+@attribute [StreamRendering]
+
 @inject IDataService dataService
 @inject IDialogService dialogService
+
+@implements IDisposable
+@inject PersistentComponentState persistentComponentState
+
 
 @attribute [Authorize(Roles = "COMPANY,ADMIN")]
 
@@ -44,9 +50,8 @@
         </tr>
     </thead>
     <tbody>
-        @if (isReading == true)
+        @if (datas.Count > 0)
         {
-
             @for (int i = 0; i < datas.Count; i++)
             {
 
@@ -144,19 +149,31 @@
     decimal TLMovement = 0;
     bool isReading = false;
 
+    private PersistingComponentStateSubscription? subscription;
+
 
     private List<DataModel> datas = new();
 
     protected override async Task OnInitializedAsync()
     {
-        if (isReading == false)
-        {
+        isBusy = true;
 
-            isBusy = true;
-            await GetAll();
-            isBusy = false;
-            isReading = true;
+        subscription = persistentComponentState.RegisterOnPersisting(() =>
+        {
+            persistentComponentState.PersistAsJson(nameof(datas), datas);
+            return Task.CompletedTask;
+        });
+
+        if (persistentComponentState.TryTakeFromJson(nameof(datas), out List<DataModel> dataList))
+        {
+            datas = dataList;
         }
+        else
+        {
+            await GetAll();
+        }
+
+        isBusy = false;
     }
 
     private async Task GetAll()
@@ -171,4 +188,6 @@
         var dialog = dialogService.Show<Extract>("Ekstre Oluştur", parameters, options: MudHelper.MudDialogHelper.DialogOptionsLarge);
         var dialogResult = await dialog.Result;
     }
+
+    public void Dispose() => subscription?.Dispose();
 }

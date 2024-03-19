@@ -1,0 +1,94 @@
+﻿@page "/Finance/Report"
+@using Microsoft.AspNetCore.Authorization
+
+@inject ICheckService checkService;
+@inject MessageboxHelper messageboxHelper;
+
+@attribute [Authorize(Roles = "COMPANY,ADMIN")]
+
+<PageTitle>Finans Rapor</PageTitle>
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+<MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
+    <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Finans Rapor</MudText>
+</MudStack>
+
+
+<MudSimpleTable Dense=true Bordered=true Hover=true Striped=true>
+    <thead>
+        <tr>
+            <th colspan="3" style="text-align:center; border:solid 1px black;">ÖDENECEK ÇEKLER</th>
+            <th colspan="3" style="text-align:center; border:solid 1px black;">CİRO TAHSİL ÇEKLER</th>
+            <th style="text-align:center; border:solid 1px black;"></th>
+            <th colspan="3" style="text-align:center; border:solid 1px black;">ÖDENECEK KREDİLER</th>
+        </tr>
+        <tr>
+            <th style="text-align:center; border:solid 1px black;">TL Verilen Çek</th>
+            <th style="text-align:center; border:solid 1px black;">USD Verilen Çek</th>
+            <th style="text-align:center; border:solid 1px black;">EUR Verilen Çek</th>
+            <th style="text-align:center; border:solid 1px black;">TL Ciro Çek</th>
+            <th style="text-align:center; border:solid 1px black;">USD Ciro Çek</th>
+            <th style="text-align:center; border:solid 1px black;">EUR Ciro Çek</th>
+            <th style="text-align:center; border:solid 1px black;">Vade</th>
+            <th style="text-align:center; border:solid 1px black;">TL Kredi</th>
+            <th style="text-align:center; border:solid 1px black;">USD Kredi</th>
+            <th style="text-align:center; border:solid 1px black;">EUR Kredi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 1; i <= 24; i++)
+        {
+            int index = i;
+            month++;
+            if (month == 13)
+                month = 1;
+
+            var date = new DateTime(index > 12 ? 2025 : 2024, month, 1);
+            string monthName = date.ToString("MMMM/yy");
+
+            <tr>
+                <td>@checks.Where(s => s.Currency == CurrencyEnum.TL.ToString() && s.MaturityDate.Value.Month == date.Month && s.ProcessType == "MY_CHECK").Sum(s => s.Price)</td>
+                <td>@checks.Where(s => s.Currency == CurrencyEnum.USD.ToString() && s.MaturityDate.Value.Month == date.Month && s.ProcessType == "MY_CHECK").Sum(s => s.Price)</td>
+                <td>@checks.Where(s => s.Currency == CurrencyEnum.EUR.ToString() && s.MaturityDate.Value.Month == date.Month && s.ProcessType == "MY_CHECK").Sum(s => s.Price)</td>
+                <td>@checks.Where(s => s.Currency == CurrencyEnum.TL.ToString() && s.MaturityDate.Value.Month == date.Month && s.ProcessType == "ENDORSED_CHECK").Sum(s => s.Price)</td>
+                <td>@checks.Where(s => s.Currency == CurrencyEnum.USD.ToString() && s.MaturityDate.Value.Month == date.Month && s.ProcessType == "ENDORSED_CHECK").Sum(s => s.Price)</td>
+                <td>@checks.Where(s => s.Currency == CurrencyEnum.EUR.ToString() && s.MaturityDate.Value.Month == date.Month && s.ProcessType == "ENDORSED_CHECK").Sum(s => s.Price)</td>
+                <td>@monthName</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+
+@code {
+    private bool isBusy = false;
+    int month = 0;
+
+    private List<CheckModel> checks = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        await GetChecks();
+        isBusy = false;
+    }
+
+    private async Task GetChecks()
+    {
+        var result = await checkService.GetAllChecks();
+        if (result.Success == false)
+        {
+            messageboxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+            return;
+        }
+
+        checks = result.Data.ToList();
+    }
+}

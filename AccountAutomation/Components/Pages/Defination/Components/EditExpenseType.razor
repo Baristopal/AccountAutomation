@@ -15,7 +15,14 @@
                 <MudTextField T="string" Label="Masraf/Stok tipi giriniz" Variant="Variant.Outlined" @bind-Value="@expenseType.Name" OnKeyUp="IsEnter"></MudTextField>
             </MudItem>
             <MudItem xs="6" Class="d-flex justify-end">
-                <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="expenseType.IsStocked" Label="Stoklu Mal" LabelPosition="LabelPosition.Start"></MudCheckBox>
+                @if (isExpenseListType == true)
+                {
+                    <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="expenseType.IsShowInExpenseListPage" ReadOnly=true Label="Gider Listesi Tipi" LabelPosition="LabelPosition.Start"></MudCheckBox>
+                }
+                else
+                {
+                    <MudCheckBox T="bool" Color="Color.Primary" @bind-Value="expenseType.IsStocked" Label="Stoklu Mal" LabelPosition="LabelPosition.Start"></MudCheckBox>
+                }
             </MudItem>
         </MudGrid>
     </DialogContent>
@@ -35,8 +42,17 @@
     [Parameter]
     public bool isNew { get; set; }
 
+    [Parameter]
+    public bool isExpenseListType { get; set; }
+
     private bool isBusy = false;
     private string turkishStatus;
+
+    protected override void OnInitialized()
+    {
+        if (isExpenseListType)
+            expenseType.IsShowInExpenseListPage = true;
+    }
 
     async Task IsEnter(KeyboardEventArgs args)
     {

@@ -10,4 +10,5 @@ public interface IDefinationService
     Task<BaseResponse<IEnumerable<T>>> GetAll<T>();
     Task<BaseResponse<T>> GetById<T>(string id);
     Task<BaseResponse<IEnumerable<ExpenseTypeModel>>> GetAllStockExpenses();
+    Task<BaseResponse<IEnumerable<ExpenseTypeModel>>> GetExpenseListTypes();
 }

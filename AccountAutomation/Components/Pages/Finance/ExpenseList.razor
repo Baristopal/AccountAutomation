@@ -1,7 +1,38 @@
-﻿
+﻿@page "/expenseList"
 
 
+@* <MudDataGrid T="ExpenseTypeModel" Items="@expenseTypes" ReadOnly="@false" EditMode="@(DataGridEditMode.Cell)"
+             StartedEditingItem="@StartedEditingItem" CanceledEditingItem="@CanceledEditingItem" CommittedItemChanges="@CommittedItemChanges"
+             Bordered="true" Dense="true" EditTrigger="@(_editTriggerRowClick ? DataGridEditTrigger.OnRowClick : DataGridEditTrigger.Manual)">
+    <Columns>
+        <PropertyColumn Property="x => x.Number" Title="Nr" IsEditable="false" />
+        <PropertyColumn Property="x => x.Sign" />
+        <PropertyColumn Property="x => x.Name" />
+        <PropertyColumn Property="x => x.Position">
+            <EditTemplate>
+                <MudSelect @bind-Value="context.Item.Position" Required RequiredError="You must select a Position!!!" Margin="@Margin.Dense">
+                    <MudSelectItem Value="0">zero</MudSelectItem>
+                    <MudSelectItem Value="1">one</MudSelectItem>
+                    <MudSelectItem Value="17">seventeen</MudSelectItem>
+                </MudSelect>
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Molar" Title="Molar mass" />
+        <TemplateColumn Hidden="@(_isCellEditMode || _readOnly || _editTriggerRowClick)" CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+ *@
 
 @code {
+    private List<ExpenseTypeModel> expenseTypes = new();
+
+    private bool _loading = true;
+
+
+    private string prerendering = "";
 
 }
