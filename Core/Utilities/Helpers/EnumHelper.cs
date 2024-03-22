@@ -7,6 +7,11 @@ namespace Core.Utilities.Helpers
     {
         public static T Parse(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                return default;
+            }
+
             return (T)Enum.Parse(typeof(T), value, true);
         }
 
@@ -46,7 +51,7 @@ namespace Core.Utilities.Helpers
                 return LookupResource(descriptionAttributes[0].ResourceType, descriptionAttributes[0].Name);
 
             if (descriptionAttributes == null) return string.Empty;
-            var asd= descriptionAttributes.Length > 0 ? descriptionAttributes[0].Name : value.ToString();
+            var asd = descriptionAttributes.Length > 0 ? descriptionAttributes[0].Name : value.ToString();
             return asd;
         }
     }

@@ -1,53 +1,44 @@
-﻿using Core.Utilities;
+﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using System.Data;
 
 namespace DataAccess.Concrete;
 public class CompanyDal : ICompanyDal
 {
-    private readonly INoSqlHelper _noSqlHelper;
+    private readonly IDbConnection _dbConnection;
 
-    public CompanyDal(INoSqlHelper noSqlHelper)
+    public CompanyDal(IDbConnection dbConnection)
     {
-        _noSqlHelper = noSqlHelper;
+        _dbConnection = dbConnection;
     }
 
-    public async Task InsertAsync(CompanyModel model)
+    public async Task<int> InsertAsync(CompanyModel model)
     {
-        await _noSqlHelper.InsertAsync(model.Id, model);
+        return await _dbConnection.InsertAsync(model);
     }
 
-    public async Task UpdateAsync(CompanyModel model)
+    public async Task<bool> UpdateAsync(CompanyModel model)
     {
-        await _noSqlHelper.UpdateAsync(model.Id, model);
+        return await _dbConnection.UpdateAsync(model);
     }
 
     public async Task<IEnumerable<CompanyModel>> GetAllAsync()
     {
-        string query = "SELECT c.* FROM Data._default.Company as c WHERE c.isDeleted = false ORDER BY c.companyId";
-        var result = await _noSqlHelper.QueryAsync<CompanyModel>(query);
-        return result;
+        string query = "SELECT * FROM Company WHERE IsDeleted = 0 ORDER BY c.companyId";
+        return await _dbConnection.QueryAsync<CompanyModel>(query);
     }
 
     public async Task<CompanyModel> GetByIdAsync(int companyId)
     {
-        string query = $"SELECT c.* FROM Data._default.Company as c WHERE c.isDeleted = false AND c.companyId = {companyId}";
-        var result = await _noSqlHelper.SingleOrDefaultAsync<CompanyModel>(query);
-
-        return result;
-    }
-
-    public async Task DeleteByIdAsync(string id)
-    {
-        string query = $"UPDATE Data._default.Company as c SET c.isDeleted = true WHERE c.isDeleted = false AND c.companyId = {id}";
-        await _noSqlHelper.ExecuteAsyncV2(query);
+        string query = "SELECT * FROM Company WHERE IsDeleted = 0 AND CompanyId = @CompanyId";
+        return await _dbConnection.QuerySingleOrDefaultAsync<CompanyModel>(query, new { CompanyId = companyId });
     }
 
     public async Task<CompanyModel> GetCompanyByEmail(string email)
     {
-        string query = $"SELECT c.* FROM Data._default.Company as c WHERE c.isDeleted = false AND c.email = '{email}'";
-        var asd = await _noSqlHelper.QueryAsync<CompanyModel>(query);
-        var result = await _noSqlHelper.SingleOrDefaultAsync<CompanyModel>(query);
-        return result;
+        string query = "SELECT * FROM Company WHERE IsDeleted =0 AND Email = @Email";
+        return await _dbConnection.QuerySingleOrDefaultAsync<CompanyModel>(query, new { Email = email });
     }
 }

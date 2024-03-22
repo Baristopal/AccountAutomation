@@ -1,0 +1,481 @@
+﻿@using WebUI.Components.Pages.Defination.Components
+@inject IInstantService instantService
+@inject IDefinationService definationService
+@inject IDataService dataService
+@inject MessageboxHelper messageboxHelper
+@inject IDialogService dialogService
+
+
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+
+<MudDialog Style="max-height: 90vh;">
+    <DialogContent>
+        <MudGrid Class="d-flex justify-end">
+            <MudItem xs="6" Class="d-flex">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" Label="USD Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.USDExchange"></MudNumericField>
+                <MudNumericField T="decimal" Variant="Variant.Outlined" Label="EURO Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.EURExchange"></MudNumericField>
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="İşlem Tipi"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchProcessTypeFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 Context="type"
+                                 ValueChanged="OnProcessTypeSelect"
+                                 AutoFocus=true />
+            </MudItem>
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="İşlem Türü"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchPurchaseTypeFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 Context="type"
+                                 ValueChanged="OnPurchaseTypeSelect" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudDatePicker Label="Tarih" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Date="data.ProcessDate" Margin="Margin.Dense"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="6">
+                <MudDatePicker Label="Vade Tarihi" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Date="data.MaturityDate" Margin="Margin.Dense"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="6">
+                <MudTextField T="string" Label="Fatura No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.InvoiceNumber"></MudTextField>
+            </MudItem>
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="Cari"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchInstantFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 Context="type"
+                                 ValueChanged="OnInstantSelect" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField T="string" Lines=5 Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.Description"></MudTextField>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="mt-4 mb-4" />
+        @*
+        @if (dataEntries.Count > 0 && isNew == false)
+        { *@
+
+        @for (int i = 0; i < dataCount; i++)
+        {
+            var index = i;
+            var data = dataEntries.Count > 0 ? dataEntries.ElementAtOrDefault(index) : new DataEntryDto();
+
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudAutocomplete T="string"
+                                     Label="Masraf Adı"
+                                     AnchorOrigin="Origin.BottomCenter"
+                                     Dense=true
+                                     Margin="Margin.Dense"
+                                     MaxItems="null"
+                                     Clearable=true
+                                     SelectValueOnTab=true
+                                     SelectOnClick=false
+                                     ResetValueOnEmptyText=true
+                                     SearchFunc="SearchExpenseTypeFunc"
+                                     CoerceValue=true
+                                     Variant="Variant.Outlined"
+                                     ValueChanged="@(s=>AddOrUpdateExpenseType(s,index))"
+                                     Value="data?.ExpenseType"
+                                     Context="expenseType">
+
+                        <NoItemsTemplate>
+                            <MudItem Class="d-flex">
+                                <MudText>Böyle bir veri bulunmamaktadır. Eklemek için butona tıklayın ----------------></MudText>
+                                <MudIconButton Style="position:absolute; right:0;" Size="Size.Small" Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddExpenseType"></MudIconButton>
+                            </MudItem>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="int" Variant="Variant.Outlined" HideSpinButtons=true Label="Stok Adet" Margin="Margin.Dense" Min="1" Value="data.Stock" ValueChanged="@(s=>AddOrUpdateStock(s,index))"></MudNumericField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudAutocomplete T="string"
+                                     Label="Birim"
+                                     AnchorOrigin="Origin.BottomCenter"
+                                     Dense=true
+                                     Margin="Margin.Dense"
+                                     MaxItems="null"
+                                     Clearable=true
+                                     SelectValueOnTab=true
+                                     SelectOnClick=false
+                                     ResetValueOnEmptyText=true
+                                     SearchFunc="SearchUnitTypeFunc"
+                                     CoerceValue=true
+                                     Variant="Variant.Outlined"
+                                     ValueChanged="@(s=>AddOrUpdateUnit(s,index))"
+                                     Value="data?.Unit" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="KDV Tutarı" Margin="Margin.Dense" Value="data.TaxAmount" ValueChanged="@(s=> AddOrUpdateTaxAmount(s,index))"></MudNumericField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudAutocomplete T="string"
+                                     Label="Döviz Birimi"
+                                     AnchorOrigin="Origin.BottomCenter"
+                                     Dense=true
+                                     Margin="Margin.Dense"
+                                     MaxItems="null"
+                                     Clearable=true
+                                     SelectValueOnTab=true
+                                     SelectOnClick=false
+                                     ResetValueOnEmptyText=true
+                                     SearchFunc="SearchCurrencyTypeFunc"
+                                     CoerceValue=true
+                                     Variant="Variant.Outlined"
+                                     ValueChanged="@(s=>AddOrUpdateCurrency(s,index))"
+                                     Value="data?.Currency" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="Döviz İşlem Toplamı" Margin="Margin.Dense" Value="data.CurrencyTotalAmount" ValueChanged="@(s=>AddOrUpdateCurrencyTotalAmount(s,index))"></MudNumericField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudNumericField T="decimal" Variant="Variant.Outlined" @ref="TLTotalAmountField" HideSpinButtons=true Label="TL İşlem Toplamı" Margin="Margin.Dense" Value="data.TLTotalAmount" ValueChanged="@(s=>AddOrUpdateTLTotalAmount(s,index))"></MudNumericField>
+                </MudItem>
+            </MudGrid>
+        }
+
+
+    </DialogContent>
+    <DialogActions>
+        <MudItem Class="mr-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Kapat</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    private bool isBusy = false;
+    private int dataCount = 1;
+
+    [Parameter]
+    public DataModel data { get; set; }
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+    private List<InstantModel> instants = new();
+    private List<ExpenseTypeModel> expenseTypes = new();
+    private List<DataEntryDto> dataEntries = new();
+
+    private MudNumericField<decimal> TLTotalAmountField;
+
+
+
+    private Dictionary<string, string> processTypes = EnumHelper<ProcessTypeEnum>.GetNamesAndDisplayNames(typeof(ProcessTypeEnum));
+    private Dictionary<string, string> purchaseTypes = EnumHelper<PurchaseTypeEnum>.GetNamesAndDisplayNames(typeof(PurchaseTypeEnum));
+    private Dictionary<string, string> unitTypes = EnumHelper<UnitEnum>.GetNamesAndDisplayNames(typeof(UnitEnum));
+
+    private void Cancel() => MudDialog.Cancel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        if (isNew == false)
+        {
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Currency = data.Currency,
+                    CurrencyTotalAmount = data.CurrencyTotalAmount,
+                    ExpenseType = data.ExpenseType,
+                    Stock = data.Stock,
+                    TaxAmount = data.TaxAmount,
+                    TLTotalAmount = data.TLTotalAmount,
+                    Unit = data.Unit
+                });
+        }
+        instants = (await instantService.GetAllInstant()).Data.ToList();
+        expenseTypes = (await definationService.GetAll<ExpenseTypeModel>()).Data.ToList();
+
+
+        isBusy = false;
+    }
+
+    private async Task Submit()
+    {
+        isBusy = true;
+
+        data.InstantName = instants.FirstOrDefault(s => s.InstantId == data.InstantId)?.CompanyName;
+        foreach (var dataEntry in dataEntries)
+        {
+            data.ExpenseType = dataEntry.ExpenseType;
+            data.Stock = dataEntry.Stock;
+            data.Unit = dataEntry.Unit;
+            data.TaxAmount = dataEntry.TaxAmount;
+            data.Currency = dataEntry.Currency;
+            data.CurrencyTotalAmount = dataEntry.CurrencyTotalAmount;
+            data.TLTotalAmount = dataEntry.TLTotalAmount;
+
+            if (data.Currency == CurrencyEnum.USD.ToString())
+                data.TLTotalAmount = data.CurrencyTotalAmount * data.USDExchange;
+            else if (data.Currency == CurrencyEnum.EUR.ToString())
+                data.TLTotalAmount = data.CurrencyTotalAmount * data.EURExchange;
+
+            if (isNew)
+            {
+                var result = await dataService.AddData(data);
+                if (result.Success == false)
+                {
+                    messageboxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                    return;
+                }
+                dataCount = 1;
+                data.Id = Guid.NewGuid().ToString();
+            }
+            else
+            {
+                var result = await dataService.UpdateData(data);
+                if (result.Success == false)
+                {
+                    messageboxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                    return;
+                }
+            }
+
+        }
+
+        MudDialog.Close(DialogResult.Ok(data));
+
+        isBusy = false;
+    }
+
+    private async Task AddExpenseType()
+    {
+        ExpenseTypeModel model = new();
+        DialogParameters parameters = new ();
+        parameters.Add("expenseType", model);
+        parameters.Add("isNew", true);
+        var dialog = dialogService.Show<EditExpenseType>("", parameters, MudHelper.MudDialogHelper.DialogOptionsSmall);
+        var dialogResult = await dialog.Result;
+        if(dialogResult.Canceled == false)
+        {
+            expenseTypes = (await definationService.GetAll<ExpenseTypeModel>()).Data.ToList();
+        }
+    }
+
+    #region Ekleme Güncelleme Methodları
+
+    private void AddOrUpdateExpenseType(string type, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    ExpenseType = type,
+                });
+        else
+            dataEntry.ExpenseType = type;
+    }
+
+    private void AddOrUpdateStock(int stock, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Stock = stock
+                });
+        else
+            dataEntry.Stock = stock;
+    }
+
+    private void AddOrUpdateUnit(string unit, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Unit = unitTypes.SingleOrDefault(s => s.Value == unit).Key
+                });
+        else
+            dataEntry.Unit = unitTypes.SingleOrDefault(s => s.Value == unit).Key;
+    }
+
+    private void AddOrUpdateTaxAmount(decimal taxAmount, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    TaxAmount = taxAmount
+                });
+        else
+            dataEntry.TaxAmount = taxAmount;
+    }
+
+    private void AddOrUpdateCurrency(string currency, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    Currency = currency
+                });
+        else
+            dataEntry.Currency = currency;
+    }
+
+    private void AddOrUpdateCurrencyTotalAmount(decimal currencyTotalAmount, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    CurrencyTotalAmount = currencyTotalAmount
+                });
+        else
+            dataEntry.CurrencyTotalAmount = currencyTotalAmount;
+
+        if (dataEntry.Currency == CurrencyEnum.USD.ToString())
+        {
+            var amount = dataEntry.CurrencyTotalAmount * data.USDExchange;
+            AddOrUpdateTLTotalAmount(amount, index);
+            TLTotalAmountField.Value = amount;
+            TLTotalAmountField.Text = amount.ToString();
+        }
+        else if (dataEntry.Currency == CurrencyEnum.EUR.ToString())
+        {
+            var amount = dataEntry.CurrencyTotalAmount * data.EURExchange;
+            AddOrUpdateTLTotalAmount(amount, index);
+            TLTotalAmountField.Value = amount;
+            TLTotalAmountField.Text = amount.ToString();
+        }
+
+        TLTotalAmountField.ReadOnly = true;
+        StateHasChanged();
+    }
+
+    private void AddOrUpdateTLTotalAmount(decimal TLTotalAmount, int index)
+    {
+        var dataEntry = dataEntries.ElementAtOrDefault(index);
+        if (dataEntry == null)
+            dataEntries.Add(new DataEntryDto()
+                {
+                    TLTotalAmount = TLTotalAmount
+                });
+        else
+            dataEntry.TLTotalAmount = TLTotalAmount;
+    }
+    #endregion
+
+    #region Search Methodları
+
+    private async Task<IEnumerable<string>> SearchProcessTypeFunc(string value)
+    {
+
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(processTypes.Select(s => s.Value));
+        return await Task.FromResult(processTypes.Select(s => s.Value).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private void OnProcessTypeSelect(string processType)
+    {
+        if (string.IsNullOrEmpty(processType) == false)
+        {
+            data.ProcessType = processTypes.SingleOrDefault(s => s.Value == processType).Key;
+        }
+        else
+            data.ProcessType = "";
+    }
+
+    private async Task<IEnumerable<string>> SearchPurchaseTypeFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(purchaseTypes.Select(s => s.Value));
+        return await Task.FromResult(purchaseTypes.Select(s => s.Value).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private void OnPurchaseTypeSelect(string purchaseType)
+    {
+        if (string.IsNullOrEmpty(purchaseType) == false)
+        {
+            data.SalesType = purchaseTypes.SingleOrDefault(s => s.Value == purchaseType).Key;
+        }
+        else
+            data.SalesType = "";
+    }
+    private async Task<IEnumerable<string>> SearchInstantFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(instants.Select(s => s.CompanyName));
+        return await Task.FromResult(instants.Select(s => s.CompanyName).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private void OnInstantSelect(string instantName)
+    {
+        if (string.IsNullOrEmpty(instantName) == false)
+        {
+            data.InstantId = (int)instants.SingleOrDefault(s => s.CompanyName == instantName).InstantId;
+        }
+        else
+            data.InstantId = 0;
+    }
+
+    private async Task<IEnumerable<string>> SearchExpenseTypeFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(expenseTypes.Select(s => s.Name));
+        return await Task.FromResult(expenseTypes.Select(s => s.Name).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private async Task<IEnumerable<string>> SearchCurrencyTypeFunc(string value)
+    {
+        var currencyTypes = Enum.GetNames(typeof(CurrencyEnum));
+
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(currencyTypes.Select(s => s));
+        return await Task.FromResult(currencyTypes.Select(s => s).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private async Task<IEnumerable<string>> SearchUnitTypeFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(unitTypes.Select(s => s.Value));
+        return await Task.FromResult(unitTypes.Select(s => s.Value).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+    #endregion
+
+}

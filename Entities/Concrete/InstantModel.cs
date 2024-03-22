@@ -1,12 +1,13 @@
-﻿using Entities.Abstract;
-using Library.Entities.Attributes;
+﻿using Dapper.Contrib.Extensions;
+using Entities.Abstract;
 
 namespace Entities.Concrete;
-[NoSqlConfig("Data", "Instant")]
+
+[Table("Instant")]
 public class InstantModel : BaseEntity
 {
     public decimal TLEncumbrance { get; set; }
-    public decimal TLReceivable{ get; set; }
+    public decimal TLReceivable { get; set; }
     public decimal TLBalance { get; set; }
     public decimal CurrencyEncumbrance { get; set; }
     public decimal CurrencyReceivable { get; set; }

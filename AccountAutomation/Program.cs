@@ -7,10 +7,12 @@ using DataAccess.Abstract;
 using DataAccess.Concrete;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Data.SqlClient;
 using MudBlazor.Services;
 using Serilog;
 using Serilog.Sinks.Datadog.Logs;
 using Serilog.Sinks.SystemConsole.Themes;
+using System.Data;
 using System.Globalization;
 using WebUI.Authentication;
 using WebUI.Services;
@@ -23,17 +25,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
+
+
 #region database
+
+builder.Services.AddTransient<IDbConnection>(sql => new SqlConnection(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddCouchbase(opt =>
 {
     opt.ConnectionString = "couchbases://cb.butoerculhxhiieq.cloud.couchbase.com";
     opt.UserName = "accountantautomation";
     opt.Password = "Baristopal,02";
-    opt.Buckets = new List<string>
-    {
-        "Data"
-    };
+    opt.Buckets = ["Data"];
     opt.TracingOptions.Enabled = false;
     opt.ThresholdOptions.Enabled = false;
     opt.OrphanTracingOptions.Enabled = false;

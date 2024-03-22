@@ -1,8 +1,8 @@
-﻿using Entities.Abstract;
-using Library.Entities.Attributes;
+﻿using Dapper.Contrib.Extensions;
+using Entities.Abstract;
 
 namespace Entities.Concrete;
-[NoSqlConfig("Data", "Check")]
+[Table("Check")]
 public class CheckModel : BaseEntity
 {
     public string BankName { get; set; }

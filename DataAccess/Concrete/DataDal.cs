@@ -1,22 +1,24 @@
-﻿using Core.Utilities;
+﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
 using Entities.Dto;
+using System.Data;
 using System.Text;
 
 namespace DataAccess.Concrete;
 public class DataDal : IDataDal
 {
-    private readonly INoSqlHelper _noSqlHelper;
+    private readonly IDbConnection _dbConnection;
 
-    public DataDal(INoSqlHelper noSqlHelper)
+    public DataDal(IDbConnection dbConnection)
     {
-        _noSqlHelper = noSqlHelper;
+        _dbConnection = dbConnection;
     }
 
-    public async Task Insert(DataModel model)
+    public async Task<int> Insert(DataModel model)
     {
-        await _noSqlHelper.InsertAsync(model.Id, model);
+        return await _dbConnection.InsertAsync(model);
     }
 
     public async Task<IEnumerable<DataModel>> GetAll(FinanceTrackingSearchDto searchKeys, int companyId)
@@ -35,18 +37,19 @@ public class DataDal : IDataDal
 
         string query = stringBuilder.ToString();
 
-        var result = await _noSqlHelper.QueryAsync<DataModel>(query);
-        return result;
+        //var result = await _noSqlHelper.QueryAsync<DataModel>(query);
+        return new List<DataModel>();
     }
 
-    public async Task Update(DataModel model)
+    public async Task<bool> Update(DataModel model)
     {
-        await _noSqlHelper.UpdateAsync(model.Id, model);
+        return await _dbConnection.UpdateAsync(model);
     }
 
     public async Task<DataModel> GetById(string id)
     {
-        return await _noSqlHelper.GetByIdAsync<DataModel>(id);
+        string query = "SELECT * FROM WHERE IsDeleted=0 AND Id=@Id";
+        return await _dbConnection.QuerySingleOrDefaultAsync<DataModel>(query, new { Id = id });
     }
 
     public async Task<IEnumerable<CaseModel>> GetCase(int companyId)
@@ -60,22 +63,23 @@ public class DataDal : IDataDal
                         ,d.currency
                         ,d.salesType
                         ,d.currencyTotalAmount
-                        FROM Data._default.Data AS d 
-                        WHERE d.isDeleted = FALSE
-                        AND d.processType IN['ÖDEME','TAHSİLAT']
-                        AND d.companyId = {companyId}
+                        FROM Data AS d 
+                        WHERE d.IsDeleted = 0
+                        AND d.ProcessType IN['PAY','COLLECT']
+                        AND d.CompanyId = @CompanyId
                         ORDER BY DATE_FORMAT_STR(d.createDate, '1111-11-11T00:00:00Z')";
 
-        var result = await _noSqlHelper.QueryAsync<CaseModel>(query);
+
+
+        var result = await _dbConnection.QueryAsync<CaseModel>(query, new { CompanyId = companyId });
         return result;
     }
 
     public async Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses(int companyId)
     {
-        string query = @$"select d.* From Data._default.Data as d where d.isDeleted=false AND d.companyId={companyId}
-                        AND d.expenseType IN(select RAW e.name From Data._default.ExpenseTypes as e where e.isStocked=true)";
+        string sql = @"SELECT From Data WHERE IsDeleted = 0 AND CompanyId = @CompanyId AND ExpenseType IN[SELECT RAW Name From ExpenseType WHERE IsDeleted = 0 AND IsStocked = 1]";
 
-        var result = await _noSqlHelper.QueryAsync<DataModel>(query);
+        var result = await _dbConnection.QueryAsync<DataModel>(sql, new { CompanyId = companyId });
         return result;
     }
 }

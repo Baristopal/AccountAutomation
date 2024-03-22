@@ -1,0 +1,156 @@
+﻿@inject MessageboxHelper messageBoxHelper
+@inject IDataService dataService
+
+
+<MudDialog Style="max-height:fit-content">
+    <DialogContent>
+        <MudForm @ref="form" Model="data">
+            <MudGrid Class="d-flex justify-end">
+                <MudItem xs="6" Class="d-flex">
+                    <MudItem Class="mr-1">
+                        <MudNumericField T="decimal" Variant="Variant.Outlined" Label="USD Kur" Required="@(data.CurrencyTotalAmount > 0 || data.Currency == CurrencyEnum.USD.ToString())" RequiredError="Dolar kuru boş olamaz" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.USDExchange"></MudNumericField>
+                    </MudItem>
+                    <MudItem>
+                        <MudNumericField T="decimal" Variant="Variant.Outlined" Label="EURO Kur" Required="@(data.CurrencyTotalAmount > 0 || data.Currency == CurrencyEnum.EUR.ToString())" RequiredError="Euro kuru boş olamaz" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.EURExchange"></MudNumericField>
+                    </MudItem>
+                </MudItem>
+            </MudGrid>
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="İşlem Tipi" Required=true RequiredError="İşlem tipi zorunludur" Variant="Variant.Outlined" AutoFocus=true AnchorOrigin="Origin.BottomCenter" Dense=true Margin="Margin.Dense" @bind-Value="data.ProcessType">
+                        <MudSelectItem Value="ProcessTypeEnum.COLLECT.ToString()">Tahsilat</MudSelectItem>
+                        <MudSelectItem Value="ProcessTypeEnum.PAY.ToString()">Ödeme</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudDatePicker Label="Tarih" Variant="Variant.Outlined" Editable="true" Required=true RequiredError="Tarih zorunludur" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="data.ProcessDate" Margin="Margin.Dense"></MudDatePicker>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="İşlem Türü" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Dense=true Required=true RequiredError="İşlem türü zorunludur" Margin="Margin.Dense" @bind-Value="data.SalesType">
+                        <MudSelectItem Value="PurchaseTypeEnum.TL_CASH.ToString()">TL Nakit</MudSelectItem>
+                        <MudSelectItem Value="PurchaseTypeEnum.USD_CASH.ToString()">USD Nakit</MudSelectItem>
+                        <MudSelectItem Value="PurchaseTypeEnum.EUR_CASH.ToString()">EUR Nakit</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Label="Döviz Birimi" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Required=true RequiredError="Döviz birimi zorunludur" Dense=true Margin="Margin.Dense" @bind-Value="data.Currency">
+                        @foreach (var item in Enum.GetNames(typeof(CurrencyEnum)))
+                        {
+                            <MudSelectItem Value="@item.ToString()">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                @if (data.Currency != CurrencyEnum.TL.ToString())
+                {
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal" Label="Döviz İşlem Toplamı" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" Value="data.CurrencyTotalAmount" ValueChanged="ChangedCurrencyTotalAmount"></MudNumericField>
+                    </MudItem>
+                }
+                <MudItem xs="@(data.Currency != CurrencyEnum.TL.ToString() ? 6 : 12)">
+                    <MudNumericField T="decimal" @ref="numericField" Label="TL İşlem Toplamı" Required=true ReadOnly=@(data.Currency == CurrencyEnum.USD.ToString() || data.Currency == CurrencyEnum.EUR.ToString()) Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.TLTotalAmount"></MudNumericField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" Lines=5 Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.Description"></MudTextField>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudItem Class="mr-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">Kapat</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public CaseModel data { get; set; }
+
+    [Parameter]
+    public bool isNew { get; set; }
+
+    MudNumericField<decimal> numericField;
+    MudForm form;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private IEnumerable<string> NoteValidation(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            yield return "Alan Zorunludur.";
+
+    }
+
+    private async Task Submit()
+    {
+        form.Validate();
+
+        if (form.IsValid)
+        {
+
+            var dataModel = new DataModel()
+                {
+                    ProcessDate = data.ProcessDate,
+                    Currency = data.Currency,
+                    Description = data.Description,
+                    SalesType = data.SalesType,
+                    ExpenseType = data.ExpenseType,
+                    ProcessType = data.ProcessType,
+                    TLTotalAmount = data.TLTotalAmount,
+                    CurrencyTotalAmount = data.CurrencyTotalAmount,
+                    USDExchange = data.USDExchange,
+                    EURExchange = data.EURExchange
+                };
+
+            if (isNew)
+            {
+                var result = await dataService.AddData(dataModel);
+                if (result.Success == false)
+                {
+                    messageBoxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                    return;
+                }
+                messageBoxHelper.ShowSuccessSnackMessage();
+                MudDialog.Close(dataModel);
+            }
+            else
+            {
+                var result = await dataService.UpdateData(dataModel);
+                if (result.Success == false)
+                {
+                    messageBoxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                    return;
+                }
+                messageBoxHelper.ShowSuccessSnackMessage();
+                MudDialog.Close(dataModel);
+            }
+        }
+    }
+
+
+    private void ChangedCurrencyTotalAmount(decimal value)
+    {
+        data.CurrencyTotalAmount = value;
+        decimal amount = 0;
+
+        if (data.Currency == CurrencyEnum.USD.ToString())
+        {
+            amount = value * data.USDExchange;
+        }
+        else if (data.Currency == CurrencyEnum.EUR.ToString())
+        {
+            amount = value * data.EURExchange;
+        }
+
+        data.TLTotalAmount = amount;
+        numericField.Value = value;
+        numericField.Text = value.ToString();
+        numericField.ReadOnly = true;
+        StateHasChanged();
+    }
+}

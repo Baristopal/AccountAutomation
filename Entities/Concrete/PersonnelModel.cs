@@ -1,9 +1,9 @@
-﻿using Entities.Abstract;
-using Library.Entities.Attributes;
+﻿using Dapper.Contrib.Extensions;
+using Entities.Abstract;
 
 namespace Entities.Concrete;
-[NoSqlConfig("Data", "Personnel")]
-public class PersonnelModel :BaseEntity
+[Table("Personnel")]
+public class PersonnelModel : BaseEntity
 {
     public int StaffId { get; set; }
     public string FirstName { get; set; }

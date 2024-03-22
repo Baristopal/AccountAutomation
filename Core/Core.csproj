@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="AspectCore.Core" Version="2.4.0" />
     <PackageReference Include="Couchbase.Extensions.DependencyInjection" Version="3.4.15" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="MongoDB.Driver" Version="2.24.0" />
   </ItemGroup>
 

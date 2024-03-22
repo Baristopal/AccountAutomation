@@ -136,11 +136,10 @@
         if (string.IsNullOrEmpty(model.ProcessType))
             isNew = true;
 
-
         DialogParameters parameters = new();
         parameters.Add("productTracking", model);
         parameters.Add("isNew", isNew);
-        var dialog = dialogService.Show<EditProductTracking>("Üretim Takip Ekle/Güncelle", parameters, MudHelper.MudDialogHelper.DialogOptionsLarge);
+        var dialog = dialogService.Show<EditProductTracking>("Üretim Takip Ekle/Güncelle", parameters, MudHelper.MudDialogHelper.DialogOptionsExtraSmall);
         var dialogResult = await dialog.Result;
         if (dialogResult.Canceled == false)
         {

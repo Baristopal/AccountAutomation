@@ -55,12 +55,15 @@
                 <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
                 <td>
                     @{
-                        unitAmount = datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount) / datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock);
+                        unitAmount = datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount) /
+                        (datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock) == 0 ? 1 : datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock));
                     }
                     @Math.Round(unitAmount,2)
                 </td>
                 <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.TLTotalAmount)</td>
-                <td>@(datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock) / datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock))</td>
+                <td>@(datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock) /
+                        (datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock) == 0 ? 1 : datas.Where(s => s.ProcessType == ProcessTypeEnum.BUY.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock)))
+                </td>
                 <td>@datas.Where(s => s.ProcessType == ProcessTypeEnum.SELL.ToString() && s.ExpenseType == item.Name).Sum(a => a.Stock)</td>
                 <td>
                     @{
@@ -126,6 +129,23 @@
         isBusy = true;
         await GetAllExpenses();
         await GetAllDatas();
+
+        List<ExpenseTypeModel> deleteExpenses = new();
+
+        foreach (var item in expenseTypes)
+        {
+            var noStockExpense = datas.Where(s => s.ExpenseType == item.Name).Sum(a => a.Stock);
+            if (noStockExpense  == 0)
+            {
+                deleteExpenses.Add(item);
+            }
+        }
+
+        foreach (var item in deleteExpenses)
+        {
+            expenseTypes.Remove(item);
+        }
+
         isBusy = false;
     }
 

@@ -1,7 +1,9 @@
 ﻿@page "/Finance/Case"
 @using Microsoft.AspNetCore.Authorization
+@using WebUI.Components.Pages.Finance.Components
 
 @inject IDataService dataService
+@inject IDialogService dialogService
 
 @attribute [Authorize(Roles = "COMPANY,ADMIN")]
 
@@ -13,6 +15,7 @@
 
 <MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
     <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Kasa</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => EditCase(new CaseModel()))">Ekle</MudButton>
 </MudStack>
 
 
@@ -34,7 +37,7 @@
                     {
                         var data = datas[i];
                         <tr>
-                            <td rowspan="2" style="border-left: 1pt solid #e0e0e0ff;">@data.SalesType</td>
+                            <td rowspan="2" style="border-left: 1pt solid #e0e0e0ff;">@(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(EnumHelper<PurchaseTypeEnum>.Parse(data.SalesType)))</td>
                             <td style="@bottomGrayColor">
                                 @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
                                 {
@@ -62,7 +65,7 @@
                                     var price = outgoingCash;
                                     @price
                                 }
-                            </td>   
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="@bottomGrayColor text-align:center; @(ingoingCash - outgoingCash < 0 ? "color:red" : "color:green")">
@@ -79,7 +82,7 @@
     </MudItem>
 }
 
-<MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>  
+<MudSimpleTable Dense=true Bordered=true FixedHeader=true Hover=true Striped=true>
     <thead>
         <tr>
             <th>Tarih</th>
@@ -93,52 +96,55 @@
         </tr>
     </thead>
     <tbody>
-        @for (int i = 0; i < datas.Count; i++)
+        @if (datas.Count > 0)
         {
-            var data = datas[i];
-            var price = data.CurrencyTotalAmount > 0 ? data.CurrencyTotalAmount : data.TLTotalAmount;
-            <tr>
-                <td>@data.ProcessDate.ToShortDateString()</td>
-                <td></td>
-                <td>@data.Description</td>
-                <td>
-                    @if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
-                    {
-                        @price
-                    }
-                </td>
-                <td>
-                    @if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
-                    {
-                        @price
-                    }
-                </td>
-                <td>
-                    @if (data.SalesType.Contains("CASH"))
-                    {
-                        <MudText>@data.SalesType (@data.Currency)</MudText>
-                    }
-
-                    @data.SalesType
-                </td>
-                <td>
-                    @data.ExpenseType
-                </td>
-                <td>
-                    @if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
-                    {
-                        TLMovement = TLMovement - datas[i].TLTotalAmount;
-                        var movement = TLMovement;
-                        <MudText Color="Color.Error">@movement</MudText>
-                    }
-                    else if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
-                    {
-                        TLMovement = TLMovement + datas[i].TLTotalAmount;
-                        var movement = TLMovement;
-                        <MudText>@movement</MudText>
-                    }
-                </td>
-            </tr>
+            TLMovement = 0;
+            @for (int i = 0; i < datas.Count; i++)
+            {
+                var data = datas[i];
+                var price = data.CurrencyTotalAmount > 0 ? data.CurrencyTotalAmount : data.TLTotalAmount;
+                <tr>
+                    <td>@data.ProcessDate?.ToShortDateString()</td>
+                    <td></td>
+                    <td>@data.Description</td>
+                    <td>
+                        @if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
+                        {
+                            @price
+                        }
+                    </td>
+                    <td>
+                        @if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
+                        {
+                            @price
+                        }
+                    </td>
+                    <td>
+                        @if (data.SalesType.Contains("CASH"))
+                        {
+                            @(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(EnumHelper<PurchaseTypeEnum>.Parse(data.SalesType)))
+                            <text>&nbsp; </text> @($"({data.Currency})");
+                        }
+                    </td>
+                    <td>
+                        @data.ExpenseType
+                    </td>
+                    <td>
+                        @if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
+                        {
+                            TLMovement = TLMovement - datas[i].TLTotalAmount;
+                            var movement = TLMovement;
+                            <MudText Color="Color.Error">@movement</MudText>
+                        }
+                        else if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
+                        {
+                            TLMovement = TLMovement + datas[i].TLTotalAmount;
+                            var movement = TLMovement;
+                            <MudText>@movement</MudText>
+                        }
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </MudSimpleTable>
@@ -163,5 +169,20 @@
     private async Task GetCase()
     {
         datas = (await dataService.GetCase()).Data.ToList();
+    }
+
+    private async Task EditCase(CaseModel model)
+    {
+        bool isNew = String.IsNullOrEmpty(model.ProcessType);
+
+        DialogParameters parameters = new();
+        parameters.Add("data", model);
+        parameters.Add("isNew", isNew);
+        var dialog = dialogService.Show<EditCase>("Kasa Düzenle", parameters, MudHelper.MudDialogHelper.DialogOptionsExtraSmall);
+        var dialogResult = await dialog.Result;
+        if (!dialogResult.Canceled)
+        {
+            await GetCase();
+        }
     }
 }

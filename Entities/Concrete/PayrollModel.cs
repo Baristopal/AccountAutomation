@@ -1,8 +1,9 @@
-﻿using Entities.Abstract;
-using Library.Entities.Attributes;
+﻿using Dapper.Contrib.Extensions;
+using Entities.Abstract;
 
 namespace Entities.Concrete;
-[NoSqlConfig("Data", "Payroll")]
+
+[Table("Payroll")]
 public class PayrollModel : BaseEntity
 {
     public int StaffId { get; set; }

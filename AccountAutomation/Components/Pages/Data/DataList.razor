@@ -1,14 +1,11 @@
 ﻿@page "/data"
 @using Microsoft.AspNetCore.Authorization
 @using WebUI.Components.Components
-
-@attribute [StreamRendering]
+@using WebUI.Components.Pages.Data.Components
 
 @inject IDataService dataService
 @inject IDialogService dialogService
-
-@implements IDisposable
-@inject PersistentComponentState persistentComponentState
+@inject MessageboxHelper messageboxHelper
 
 
 @attribute [Authorize(Roles = "COMPANY,ADMIN")]
@@ -21,7 +18,10 @@
 
 <MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
     <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Data Listesi</MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ExportToExtract">Ekstre Oluştur</MudButton>
+    <MudItem>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ExportToExtract">Ekstre Oluştur</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => EditData(new DataModel()))">Veri Ekle</MudButton>
+    </MudItem>
 </MudStack>
 
 
@@ -38,105 +38,129 @@
             <th>Birim Adı</th>
             <th>Kdv Tutar</th>
             <th>Döviz Birim</th>
-            <th>Döviz İşlem Toplamı</th>
+            @if (datas.Count(s => s.Currency != CurrencyEnum.TL.ToString()) > 0)
+            {
+                <th>Döviz İşlem Toplamı</th>
+            }
             <th>TL İşlem Toplamı</th>
             <th>TL Borç</th>
             <th>TL Alacak</th>
             <th>Alış KDV</th>
             <th>Satış KDV</th>
-            <th>Döviz Borç</th>
-            <th>Döviz Alacak</th>
+            @if (datas.Count(s => s.Currency != CurrencyEnum.TL.ToString()) > 0)
+            {
+                <th>Döviz Borç</th>
+                <th>Döviz Alacak</th>
+            }
             <th>TL Hareketler</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
         @if (datas.Count > 0)
         {
+            TLMovement = 0;
             @for (int i = 0; i < datas.Count; i++)
             {
+                int index = i;
 
                 <tr>
                     <td>
-                        @(EnumHelper<ProcessTypeEnum>.GetDisplayValue(EnumHelper<ProcessTypeEnum>.Parse(datas[i].ProcessType)))
+                        @(EnumHelper<ProcessTypeEnum>.GetDisplayValue(EnumHelper<ProcessTypeEnum>.Parse(datas[index].ProcessType)))
                     </td>
-                    <td>@datas[i].ProcessDate.Value.ToShortDateString()</td>
-                    <td>@datas[i].MaturityDate.Value.ToShortDateString()</td>
-                    <td>@datas[i].InvoiceNumber</td>
-                    <td>@datas[i].Description</td>
-                    <td>@datas[i].ExpenseType</td>
-                    <td>@datas[i].Stock</td>
+                    <td>@datas[index].ProcessDate?.ToShortDateString()</td>
                     <td>
-                        @(EnumHelper<UnitEnum>.GetDisplayValue(EnumHelper<UnitEnum>.Parse(datas[i].Unit)))
+                        @datas[index].MaturityDate?.ToShortDateString()
                     </td>
-                    <td>@datas[i].TaxAmount</td>
-                    <td>@datas[i].Currency</td>
-                    <td>@datas[i].CurrencyTotalAmount</td>
-                    <td>@datas[i].TLTotalAmount</td>
+                    <td>@datas[index].InvoiceNumber</td>
+                    <td>@datas[index].Description</td>
+                    <td>@datas[index].ExpenseType</td>
+                    <td>@datas[index].Stock</td>
                     <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
+                        @(EnumHelper<UnitEnum>.GetDisplayValue(EnumHelper<UnitEnum>.Parse(datas[index].Unit)))
+                    </td>
+                    <td>@datas[index].TaxAmount</td>
+                    <td>@datas[index].Currency</td>
+                    @if (datas.Count(s => s.Currency != CurrencyEnum.TL.ToString()) > 0)
+                    {
+                        <td>@datas[index].CurrencyTotalAmount</td>
+                    }
+                    <td>@datas[index].TLTotalAmount</td>
+                    <td>
+                        @if (datas[index].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
                         {
-                            if (datas[i].CurrencyTotalAmount > 0)
+                            if (datas[index].CurrencyTotalAmount > 0)
                             {
-                                @(datas[i].Currency == CurrencyEnum.USD.ToString() ? datas[i].CurrencyTotalAmount * datas[i].USDExchange : datas[i].CurrencyTotalAmount * datas[i].EURExchange)
+                                @(datas[index].Currency == CurrencyEnum.USD.ToString() ? datas[index].CurrencyTotalAmount * datas[index].USDExchange : datas[index].CurrencyTotalAmount * datas[index].EURExchange)
                                 ;
                             }
                             else
                             {
-                                @datas[i].TLTotalAmount
+                                @datas[index].TLTotalAmount
                             }
                         }
                     </td>
                     <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
+                        @if (datas[index].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
                         {
-                            if (datas[i].CurrencyTotalAmount > 0)
+                            if (datas[index].CurrencyTotalAmount > 0)
                             {
-                                @(datas[i].Currency == CurrencyEnum.USD.ToString() ? datas[i].CurrencyTotalAmount * datas[i].USDExchange : datas[i].CurrencyTotalAmount * datas[i].EURExchange)
+                                @(datas[index].Currency == CurrencyEnum.USD.ToString() ? datas[index].CurrencyTotalAmount * datas[index].USDExchange : datas[index].CurrencyTotalAmount * datas[index].EURExchange)
                                 ;
                             }
                             else
                             {
-                                @datas[i].TLTotalAmount
+                                @datas[index].TLTotalAmount
                             }
                         }
                     </td>
                     <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
+                        @if (datas[index].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
                         {
-                            @datas[i].TaxAmount
+                            @datas[index].TaxAmount
                         }
                     </td>
                     <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
+                        @if (datas[index].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
                         {
-                            @datas[i].TaxAmount
+                            @datas[index].TaxAmount
                         }
                     </td>
+
+                    @if (datas.Count(s => s.Currency != CurrencyEnum.TL.ToString()) > 0)
+                    {
+                        <td>
+                            @if (datas[index].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()) && datas[index].CurrencyTotalAmount > 0)
+                            {
+                                @datas[index].CurrencyTotalAmount
+                            }
+                        </td>
+                        <td>
+                            @if (datas[index].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()) && datas[index].CurrencyTotalAmount > 0)
+                            {
+                                @datas[index].CurrencyTotalAmount
+                            }
+                        </td>
+                    }
                     <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()) && datas[i].CurrencyTotalAmount > 0)
+                        @if (datas[index].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
                         {
-                            @datas[i].CurrencyTotalAmount
-                        }
-                    </td>
-                    <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()) && datas[i].CurrencyTotalAmount > 0)
-                        {
-                            @datas[i].CurrencyTotalAmount
-                        }
-                    </td>
-                    <td>
-                        @if (datas[i].ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()) || datas[i].ProcessType.Contains(ProcessTypeEnum.SALE_REFUND.ToString()))
-                        {
-                            TLMovement = TLMovement - datas[i].TLTotalAmount;
+                            TLMovement = TLMovement - datas[index].TLTotalAmount;
                             var price = TLMovement;
                             <MudText Color="Color.Error">@price</MudText>
                         }
                         else
                         {
-                            TLMovement = TLMovement + datas[i].TLTotalAmount;
+                            TLMovement = TLMovement + datas[index].TLTotalAmount;
                             var price = TLMovement;
                             <MudText>@price</MudText>
                         }
+                    </td>
+                    <td>
+                        <MudItem Class="d-flex">
+                            <MudIconButton Icon="@Icons.Material.Filled.Update" Color="Color.Warning" Title="Güncelle" OnClick="@(()=> EditData(datas[index]))"></MudIconButton>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Title="Sil" OnClick="@(()=> DeleteData(datas[index]))"></MudIconButton>
+                        </MudItem>
                     </td>
                 </tr>
             }
@@ -154,25 +178,30 @@
 
     private List<DataModel> datas = new();
 
+    protected override bool ShouldRender()
+    {
+
+        return base.ShouldRender();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         isBusy = true;
+        // subscription = persistentComponentState.RegisterOnPersisting(() =>
+        //  {
+        //      persistentComponentState.PersistAsJson(nameof(datas), datas);
+        //      return Task.CompletedTask;
+        //  });
 
-        subscription = persistentComponentState.RegisterOnPersisting(() =>
-        {
-            persistentComponentState.PersistAsJson(nameof(datas), datas);
-            return Task.CompletedTask;
-        });
+        // if (persistentComponentState.TryTakeFromJson(nameof(datas), out List<DataModel> dataList))
+        // {
+        //     datas = dataList;
+        // }
+        // else
+        // {
+        // }
 
-        if (persistentComponentState.TryTakeFromJson(nameof(datas), out List<DataModel> dataList))
-        {
-            datas = dataList;
-        }
-        else
-        {
             await GetAll();
-        }
-
         isBusy = false;
     }
 
@@ -187,6 +216,42 @@
         parameters.Add("datas", datas);
         var dialog = dialogService.Show<Extract>("Ekstre Oluştur", parameters, options: MudHelper.MudDialogHelper.DialogOptionsLarge);
         var dialogResult = await dialog.Result;
+    }
+
+    private async Task EditData(DataModel model)
+    {
+        isReading = false;
+
+        bool isNew = String.IsNullOrEmpty(model.ProcessType) ? true : false;
+
+        DialogParameters parameters = new();
+        parameters.Add("data", model);
+        parameters.Add("isNew", isNew);
+        var dialog = dialogService.Show<EditData>("", parameters, MudHelper.MudDialogHelper.DialogOptionsExtraSmall);
+        var dialogResult = await dialog.Result;
+        if (dialogResult.Canceled == false)
+        {
+            await GetAll();
+        }
+
+    }
+
+    private async Task DeleteData(DataModel model)
+    {
+        model.IsDeleted = true;
+        var deleteResult = await messageboxHelper.ShowDialog("Veri Silme İşlemi", "Seçtiğiniz veriyi silmek istediğinize emin misiniz?");
+        if (deleteResult == true)
+        {
+            var result = await dataService.UpdateData(model);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage("Veri Silinemedi", Severity.Error);
+                return;
+            }
+
+            messageboxHelper.ShowSuccessSnackMessage();
+            await GetAll();
+        }
     }
 
     public void Dispose() => subscription?.Dispose();

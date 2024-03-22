@@ -1,45 +1,50 @@
-﻿using Core.Extensions;
-using Core.Utilities;
+﻿using Core.Utilities;
+using Dapper;
+using Dapper.Contrib.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
-using Microsoft.AspNetCore.Http;
+using System.Data;
 
 namespace DataAccess.Concrete;
 public class CheckDal : ICheckDal
 {
-    private readonly INoSqlHelper _noSqlHelper;
-    public CheckDal(INoSqlHelper noSqlHelper)
+    private readonly IDbConnection _dbConnection;
+    public CheckDal(IDbConnection dbConnection)
     {
-        _noSqlHelper = noSqlHelper;
+        _dbConnection = dbConnection;
     }
 
-    public async Task Add(CheckModel model)
+    public async Task<int> Add(CheckModel model)
     {
-        await _noSqlHelper.InsertAsync(model.Id, model);
+        return await _dbConnection.InsertAsync(model);
     }
 
-    public async Task Update(CheckModel model)
+    public async Task<bool> Update(CheckModel model)
     {
-        await _noSqlHelper.UpdateAsync(model.Id, model);
+        return await _dbConnection.UpdateAsync(model);
     }
 
     public async Task<IEnumerable<CheckModel>> GetAll(int companyId)
     {
-        string query = $"SELECT c.* FROM Data._default.Check as c WHERE c.isDeleted = false AND c.companyId = {companyId} ORDER BY c.createdDate";
-        var result = await _noSqlHelper.QueryAsync<CheckModel>(query);
-        return result;
+        string query = "SELECT * FROM Cities WITH(NOLOCK) WHERE IsDeleted=0 AND CompanyId=@CompanyId";
+        var p = new { CompanyId = companyId };
+
+        return await _dbConnection.QueryAsync<CheckModel>(query, p, commandType: CommandType.Text);
     }
 
     public async Task<CheckModel> GetById(string id)
     {
-        var result = await _noSqlHelper.GetByIdAsync<CheckModel>(id);
-        return result;
+        return await _dbConnection.QuerySingleOrDefaultAsync<CheckModel>("SELECT * FROM Check WHERE Id=@Id AND IsDeleted = 0", new { Id = id });
     }
 
     public async Task<decimal> GetChecksTotalAmount(string processType, int companyId)
     {
-        string query = @$"SELECT RAW c.price FROM Data._default.Check as c WHERE c.isDeleted = false AND c.processType = '{processType}' AND c.companyId={companyId}";
-        var result = await _noSqlHelper.SingleOrDefaultAsync<decimal>(query);
+        string sql  = "SELECT RAW Price FROM Check WITH(NOLOCK) WHERE IsDeleted = 0 AND ProcessType = @ProcessType AND CompanyId=@CompanyId";
+        var p = new { ProcessType = processType, CompanyId = companyId };
+        var result = await _dbConnection.QuerySingleOrDefaultAsync<decimal>(sql, p, commandType: CommandType.Text);
+
         return result;
     }
+
+
 }

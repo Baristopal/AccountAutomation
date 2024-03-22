@@ -7,6 +7,8 @@ public enum PurchaseTypeEnum
     TL_CASH,
     [Display(Name = "USD Nakit")]
     USD_CASH,
+    [Display(Name = "EUR Nakit")]
+    EUR_CASH,
     [Display(Name = "Banka")]
     BANK_TRANSFER,
     [Display(Name = "Kredi Kartı")]

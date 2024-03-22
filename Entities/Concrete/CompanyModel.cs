@@ -1,11 +1,10 @@
-﻿using Entities.Abstract;
-using Library.Entities.Attributes;
+﻿using Dapper.Contrib.Extensions;
+using Entities.Abstract;
 
 namespace Entities.Concrete;
-[NoSqlConfig("Data","Company")]
+[Table("Company")]
 public class CompanyModel : BaseEntity
 {
-    public int CompanyId { get; set; }
     public string Name { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }

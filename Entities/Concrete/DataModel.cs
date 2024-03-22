@@ -1,12 +1,11 @@
-﻿using Entities.Abstract;
-using Library.Entities.Attributes;
+﻿using Dapper.Contrib.Extensions;
+using Entities.Abstract;
 
 namespace Entities.Concrete;
 
-[NoSqlConfig("Data","Data")]
+[Table("Data")]
 public class DataModel : BaseEntity, IEntity
 {
-    public int CompanyId { get; set; }
     public string ProcessType { get; set; } // İşlem Türü 
     public DateTime? ProcessDate { get; set; } // İşlem Tarihi
     public DateTime? MaturityDate { get; set; } // Vade Tarihi
