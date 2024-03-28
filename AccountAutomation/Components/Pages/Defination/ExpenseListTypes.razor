@@ -81,7 +81,7 @@
         if (isDeleted == true)
         {
             model.IsDeleted = true;
-            var result = await definationService.Update(model.Id, model);
+            var result = await definationService.Update<ExpenseTypeModel>(model);
             if (result.Success)
             {
                 expenseTypes.Remove(model);

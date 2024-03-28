@@ -24,4 +24,7 @@ public class DataModel : BaseEntity, IEntity
     public decimal EURExchange { get; set; } // EUR Kuru
     public decimal CurrencyTotalAmount { get; set; } // Para Birimi Toplam Tutar
     public decimal TLTotalAmount { get; set; } // TL Toplam Tutar
+    public decimal PaidAmount { get; set; }
+    public string Status { get; set; }
+
 }

@@ -1,0 +1,141 @@
+﻿@inject MessageboxHelper MessageBoxHelper
+
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="Check" @ref="form">
+            <MudGrid>
+                <MudItem xs="3">
+                    <MudTextField Label="Banka Adı" Variant="Variant.Outlined" AutoFocus=true Margin="Margin.Dense" @bind-Value="Check.BankName" Required=true RequiredError="Banka adı boş olamaz."></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField Label="Çek No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.CheckNumber" Required=true RequiredError="Çek numarası boş olamaz."></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudDatePicker Label="Vade Tarihi" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="Check.MaturityDate" Margin="Margin.Dense" Required=true RequiredError="Vade tarihi boş olamaz."></MudDatePicker>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudNumericField Label="Tutar" Variant="Variant.Outlined" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="Check.Price" Required=true RequiredError="Tutar boş olamaz."></MudNumericField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.Description"></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudSelect T="string" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Label="Para Birimi" Dense=true Margin="Margin.Dense" @bind-Value="Check.Currency" Required=true RequiredError="Para birimi boş olamaz.">
+                        @foreach (var item in Enum.GetNames(typeof(CurrencyEnum)))
+                        {
+                            <MudSelectItem Value="@item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudSelect T="string" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Label="İşlem Türü" Required=true RequiredError="İşlem türü boş olamaz." Dense=true Margin="Margin.Dense" @bind-Value="Check.ProcessType">
+                        <MudSelectItem Value="@("MY_CHECK")">KENDİ ÇEKİMİZ</MudSelectItem>
+                        <MudSelectItem Value="@("ENDORSED_CHECK")">CİRO ÇEK</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField Label="Şube" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.Department"></MudTextField>
+                </MudItem>
+                <MudItem xs="3">
+                    <MudTextField Label="Hesap No" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="Check.AccountNumber"></MudTextField>
+                </MudItem>
+                <MudItem>
+                    <MudButton Style="position:absolute; right:0; margin-right:24px;" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddCheck">Ekle</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+
+
+
+        <MudSimpleTable Dense=true Bordered=true Hover=true Striped=true Class="mt-4">
+            <thead>
+                <tr>
+                    <th>Banka Adı</th>
+                    <th>Çek No</th>
+                    <th>Vade Tarihi</th>
+                    <th>Tutar</th>
+                    <th>Açıklama</th>
+                    <th>Para Birimi</th>
+                    <th>İşlem Türü</th>
+                    <th>Şube</th>
+                    <th>Hesap No</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Checks)
+                {
+                    <tr>
+                        <td>@item.BankName</td>
+                        <td>@item.CheckNumber</td>
+                        <td>@item.MaturityDate?.ToShortDateString()</td>
+                        <td>@item.Price</td>
+                        <td>@item.Description</td>
+                        <td>@item.Currency</td>
+                        <td>
+                            @(item.ProcessType == "MY_CHECK" ? "Kendi Çekimiz" : "Ciro Çek")
+                        </td>
+                        <td>@item.Department</td>
+                        <td>@item.AccountNumber</td>
+                        <td>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Secondary" OnClick="@(() => Checks.Remove(item))"></MudIconButton>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+
+
+    </DialogContent>
+    <DialogActions>
+        <MudItem Class="mr-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@Cancel">İptal</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Submit">Kaydet</MudButton>
+        </MudItem>
+    </DialogActions>
+
+
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    private CheckModel Check = new();
+
+    private List<CheckModel> Checks = new();
+
+    private MudForm form;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(Checks));
+    }
+
+
+    private void AddCheck()
+    {
+        form.Validate();
+        if (form.IsValid)
+        {
+            var check = new CheckModel
+            {
+                BankName = Check.BankName,
+                CheckNumber = Check.CheckNumber,
+                MaturityDate = Check.MaturityDate,
+                Price = Check.Price,
+                Description = Check.Description,
+                Currency = Check.Currency,
+                ProcessType = Check.ProcessType,
+                Department = Check.Department,
+                AccountNumber = Check.AccountNumber
+            };
+            Checks.Add(check);
+            StateHasChanged();
+        }
+    }
+}

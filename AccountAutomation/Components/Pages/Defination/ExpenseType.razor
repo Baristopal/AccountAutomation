@@ -28,7 +28,6 @@
         </tr>
     </thead>
     <tbody>
-        <a href="c:\users\administrator\source\repos\accountautomation\accountautomation\components\pages\defination\expensetype.razor">c:\users\administrator\source\repos\accountautomation\accountautomation\components\pages\defination\expensetype.razor</a>
         @foreach (var item in expenseTypes)
         {
             <tr>
@@ -80,7 +79,7 @@
         if (isDeleted == true)
         {
             model.IsDeleted = true;
-            var result = await definationService.Update(model.Id, model);
+            var result = await definationService.Update<ExpenseTypeModel>(model);
             if (result.Success)
             {
                 expenseTypes.Remove(model);

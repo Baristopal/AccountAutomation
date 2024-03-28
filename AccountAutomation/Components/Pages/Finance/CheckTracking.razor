@@ -121,5 +121,9 @@
         parameters.Add("isNew", isNew);
         var dialog = dialogService.Show<EditCheck>("Çek Ekle/Düzenle", parameters, MudHelper.MudDialogHelper.DialogOptionsLarge);
         var dialogResult = await dialog.Result;
+        if(dialogResult.Canceled == false)
+        {
+            await GetAllChecks();
+        }
     }
 }

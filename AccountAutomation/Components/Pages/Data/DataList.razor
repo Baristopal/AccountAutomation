@@ -66,7 +66,7 @@
 
                 <tr>
                     <td>
-                        @(EnumHelper<ProcessTypeEnum>.GetDisplayValue(EnumHelper<ProcessTypeEnum>.Parse(datas[index].ProcessType)))
+                        @(EnumHelper<ProcessTypeEnum>.GetDisplayValue(datas[index].ProcessType))
                     </td>
                     <td>@datas[index].ProcessDate?.ToShortDateString()</td>
                     <td>
@@ -77,7 +77,7 @@
                     <td>@datas[index].ExpenseType</td>
                     <td>@datas[index].Stock</td>
                     <td>
-                        @(EnumHelper<UnitEnum>.GetDisplayValue(EnumHelper<UnitEnum>.Parse(datas[index].Unit)))
+                        @(EnumHelper<UnitEnum>.GetDisplayValue(datas[index].Unit))
                     </td>
                     <td>@datas[index].TaxAmount</td>
                     <td>@datas[index].Currency</td>
@@ -98,7 +98,7 @@
                             {
                                 @datas[index].TLTotalAmount
                             }
-                        }
+                        }   
                     </td>
                     <td>
                         @if (datas[index].ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PAY.ToString()) || datas[index].ProcessType.Contains(ProcessTypeEnum.PURCHASE_REFUND.ToString()))
@@ -220,13 +220,12 @@
 
     private async Task EditData(DataModel model)
     {
-        isReading = false;
-
         bool isNew = String.IsNullOrEmpty(model.ProcessType) ? true : false;
 
         DialogParameters parameters = new();
         parameters.Add("data", model);
         parameters.Add("isNew", isNew);
+        parameters.Add("isPaidComponent", false);
         var dialog = dialogService.Show<EditData>("", parameters, MudHelper.MudDialogHelper.DialogOptionsExtraSmall);
         var dialogResult = await dialog.Result;
         if (dialogResult.Canceled == false)

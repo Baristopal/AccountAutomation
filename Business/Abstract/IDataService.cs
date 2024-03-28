@@ -13,4 +13,6 @@ public interface IDataService
     Task<BaseResponse<DataModel>> GetDataById(string id);
     Task<BaseResponse<IEnumerable<CaseModel>>> GetCase();
     Task<BaseResponse<IEnumerable<DataModel>>> GetAllDataWithStockExpenses();
+    Task<BaseResponse<IEnumerable<DataModel>>> GetAllForInstant();
+    Task<BaseResponse<IEnumerable<DataModel>>> GetAllNotPaidInvoices(int instantId);
 }

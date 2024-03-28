@@ -1,4 +1,6 @@
 ﻿using Dapper;
+using DataAccess.Abstract;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.ComponentModel;
 using System.Data;
 using System.Reflection;
@@ -8,7 +10,7 @@ using Utilities.Extensions;
 
 namespace DataAccess.Concrete.Repository;
 
-public class DapperRepositoryBase
+public class DapperRepositoryBase : IRepositoryBase
 {
     private readonly IDbConnection _dbConnection;
 
@@ -17,17 +19,17 @@ public class DapperRepositoryBase
         _dbConnection = dbConnection;
     }
 
-    public async Task<int> DeleteByIdAsync<T>(int id)
+    public async Task<int> DeleteByIdAsync<T>(int id, int companyId)
     {
-        return await _dbConnection.ExecuteAsync($"UPDATE {typeof(T).GetTableName()} SET IsDeleted = 1 WHERE Id=@Id", new { Id = id });
+        return await _dbConnection.ExecuteAsync($"UPDATE {typeof(T).GetTableName()} SET IsDeleted = 1 WHERE Id=@Id AND CompanyId=@CompanyId", new { Id = id, CompanyId = companyId });
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync<T>()
+    public async Task<IEnumerable<T>> GetAllAsync<T>(int companyId)
     {
-        return await _dbConnection.QueryAsync<T>($"SELECT * FROM {typeof(T).GetTableName() ?? typeof(T).Name}");
+        return await _dbConnection.QueryAsync<T>($"SELECT * FROM {typeof(T).GetTableName() ?? typeof(T).Name} WHERE CompanyId=@CompanyId", new {CompanyId = companyId});
     }
 
-    public async Task<T> GetByIdAsync<T>(int id)
+    public async Task<T> GetByIdAsync<T>(string id)
     {
         return await _dbConnection.QuerySingleOrDefaultAsync<T>($"SELECT * FROM {typeof(T).GetTableName()} WHERE Id=@Id", new { Id = id });
     }
@@ -156,7 +158,11 @@ public class DapperRepositoryBase
     private static IEnumerable<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties();
     private static string GenerateInsertQuery<T>()
     {
-        var insertQuery = new StringBuilder($"INSERT INTO {typeof(T).GetTableName() ?? typeof(T).Name} ");
+        Type type = typeof(T);
+        var model = Activator.CreateInstance(type);
+        var tableName = model?.GetType()?.CustomAttributes?.FirstOrDefault()?.ConstructorArguments?.LastOrDefault().Value?.ToString();
+
+        var insertQuery = new StringBuilder($"INSERT INTO {tableName} ");
 
         insertQuery.Append('(');
 
@@ -177,7 +183,11 @@ public class DapperRepositoryBase
     }
     private static string GenerateUpdateQuery<T>(T t)
     {
-        var updateQuery = new StringBuilder($"UPDATE {typeof(T).GetTableName() ?? typeof(T).Name} SET ");
+        Type type = typeof(T);
+        var model = Activator.CreateInstance(type);
+        var tableName = model?.GetType()?.CustomAttributes?.FirstOrDefault()?.ConstructorArguments?.LastOrDefault().Value?.ToString();
+
+        var updateQuery = new StringBuilder($"UPDATE {tableName} SET ");
         var properties = GenerateListOfProperties(GetProperties<T>());
 
         properties.ForEach(property =>

@@ -2,7 +2,7 @@
 using Entities.Abstract;
 
 namespace Entities.Concrete;
-[Table("Check")]
+[Table("Checks")]
 public class CheckModel : BaseEntity
 {
     public string BankName { get; set; }
@@ -15,5 +15,7 @@ public class CheckModel : BaseEntity
     public string ProcessType { get; set; }
     public DateTime? ProcessDate { get; set; }
     public DateTime? PaymentDate { get; set; }
+    public string Department { get; set; }
+    public string AccountNumber { get; set; }
     public string Status { get; set; }
 }

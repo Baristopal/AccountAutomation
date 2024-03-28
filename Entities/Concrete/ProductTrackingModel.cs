@@ -23,7 +23,7 @@ public class ProductTrackingModel : BaseEntity
     public decimal Grammage { get; set; }
     public int ActualQuantity { get; set; }
     public int WasteQuantity { get; set; }
-    public DateTime? DicontinuationDate { get; set; }
+    public DateTime? DiscontinuationDate { get; set; }
     public int DelayTime { get; set; }
     public int TimeInProduction { get; set; }
     public decimal UnitCost { get; set; }

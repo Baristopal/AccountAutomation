@@ -1,38 +1,41 @@
 ﻿using Core.Utilities;
+using Dapper;
+using Dapper.Contrib.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using System.Data;
 
 namespace DataAccess.Concrete;
 public class PayrollDal : IPayrollDal
 {
 
-    private readonly INoSqlHelper _noSqlHelper;
+    private readonly IDbConnection _dbConnection;
 
-    public PayrollDal(INoSqlHelper noSqlHelper)
+    public PayrollDal(IDbConnection dbConnection)
     {
-        _noSqlHelper = noSqlHelper;
+        _dbConnection = dbConnection;
     }
 
     public async Task InsertAsync(PayrollModel model)
     {
-        await _noSqlHelper.InsertAsync(model.Id, model);
+        await _dbConnection.InsertAsync(model);
     }
 
     public async Task UpdateAsync(PayrollModel model)
     {
-        await _noSqlHelper.UpdateAsync(model.Id, model);
+        await _dbConnection.UpdateAsync(model);
     }
 
     public async Task<IEnumerable<PayrollModel>> GetAllAsync(int companyId)
     {
-        string query = $"SELECT p.* FROM Data._default.Payroll as p WHERE p.isDeleted = false AND p.companyId = {companyId} ORDER BY p.createdDate DESC";
-        var result = await _noSqlHelper.QueryAsync<PayrollModel>(query);
+        string query = $"SELECT * FROM Payroll WHERE  IsDeleted = 0 AND CompanyId = {companyId} ORDER BY CreatedDate DESC";
+        var result = await _dbConnection.QueryAsync<PayrollModel>(query);
         return result;
     }
 
     public async Task<PayrollModel> GetByIdAsync(string id)
     {
-        var result = await _noSqlHelper.GetByIdAsync<PayrollModel>(id);
+        var result = await _dbConnection.GetAsync<PayrollModel>(id);
         return result;
     }
 }

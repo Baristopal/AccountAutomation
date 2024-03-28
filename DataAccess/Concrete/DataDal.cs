@@ -23,22 +23,39 @@ public class DataDal : IDataDal
 
     public async Task<IEnumerable<DataModel>> GetAll(FinanceTrackingSearchDto searchKeys, int companyId)
     {
-        StringBuilder stringBuilder = new();
+        StringBuilder builder = new StringBuilder();
+        builder.Append($"SELECT * FROM Data WITH(NOLOCK) WHERE IsDeleted = 0 AND CompanyId = {companyId}");
+        builder.Append($" AND MaturityDate BETWEEN '{searchKeys.StartDate?.ToString("yyyy-MM-dd 00:00:00")}' AND '{searchKeys.EndDate?.ToString("yyyy-MM-dd 23:59:59")}'");
 
-        stringBuilder.Append("SELECT d.* FROM Data._default.Data as d WHERE d.isDeleted = false");
+        builder.Append(" ORDER BY CreatedDate DESC");
 
-        if (searchKeys.StartDate != null && searchKeys.EndDate != null)
+        var query = builder.ToString();
+
+        var result = await _dbConnection.QueryAsync<DataModel>(query);
+        return result;
+    }
+
+    public async Task<IEnumerable<DataModel>> GetAll(int companyId)
+    {
+        string query = "SELECT * FROM Data WITH(NOLOCK) WHERE IsDeleted = 0 AND CompanyId=@CompanyId AND ExpenseType is not null ORDER BY CreatedDate";
+        var p = new
         {
-            stringBuilder.Append($" AND (d.maturityDate BETWEEN '{searchKeys.StartDate?.ToString("yyyy-MM-dd")}T00:00:00.0' AND '{searchKeys.EndDate?.ToString("yyyy-MM-dd")}T23:59:00.0')");
-        }
-        stringBuilder.Append($" AND d.companyId = {companyId}");
+            CompanyId = companyId
+        };
+        var result = await _dbConnection.QueryAsync<DataModel>(query, p, commandType: CommandType.Text);
+        return result;
+    }
 
-        stringBuilder.Append(" ORDER BY DATE_FORMAT_STR(d.createdDate, '1111-11-11T00:00:00Z')");
+    public async Task<IEnumerable<DataModel>> GetAllForInstant(int companyId)
+    {
+        string query = "SELECT * FROM Data WITH(NOLOCK) WHERE IsDeleted = 0 AND CompanyId=@CompanyId AND ExpenseType is not null AND InstantName is not null ORDER BY CreatedDate";
+        var p = new
+        {
+            CompanyId = companyId
+        };
 
-        string query = stringBuilder.ToString();
-
-        //var result = await _noSqlHelper.QueryAsync<DataModel>(query);
-        return new List<DataModel>();
+        var result = await _dbConnection.QueryAsync<DataModel>(query, p, commandType: CommandType.Text);
+        return result;
     }
 
     public async Task<bool> Update(DataModel model)
@@ -48,7 +65,7 @@ public class DataDal : IDataDal
 
     public async Task<DataModel> GetById(string id)
     {
-        string query = "SELECT * FROM WHERE IsDeleted=0 AND Id=@Id";
+        string query = "SELECT * FROM Data WHERE IsDeleted=0 AND Id=@Id";
         return await _dbConnection.QuerySingleOrDefaultAsync<DataModel>(query, new { Id = id });
     }
 
@@ -65,11 +82,9 @@ public class DataDal : IDataDal
                         ,d.currencyTotalAmount
                         FROM Data AS d 
                         WHERE d.IsDeleted = 0
-                        AND d.ProcessType IN['PAY','COLLECT']
+                        AND d.ProcessType IN('PAY','COLLECT')
                         AND d.CompanyId = @CompanyId
-                        ORDER BY DATE_FORMAT_STR(d.createDate, '1111-11-11T00:00:00Z')";
-
-
+                        ORDER BY d.CreatedDate";
 
         var result = await _dbConnection.QueryAsync<CaseModel>(query, new { CompanyId = companyId });
         return result;
@@ -77,9 +92,21 @@ public class DataDal : IDataDal
 
     public async Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses(int companyId)
     {
-        string sql = @"SELECT From Data WHERE IsDeleted = 0 AND CompanyId = @CompanyId AND ExpenseType IN[SELECT RAW Name From ExpenseType WHERE IsDeleted = 0 AND IsStocked = 1]";
+        string sql = @$"SELECT * From Data WHERE IsDeleted = 0 AND CompanyId = {companyId} AND ExpenseType IN(SELECT Name From ExpenseType WHERE IsDeleted = 0 AND IsStocked = 1)";
 
-        var result = await _dbConnection.QueryAsync<DataModel>(sql, new { CompanyId = companyId });
+        var result = await _dbConnection.QueryAsync<DataModel>(sql);
+        return result;
+    }
+
+    public async Task<IEnumerable<DataModel>> GetAllNotPaidInvoices(int companyId, int instantId)
+    {
+        string sqlQuery = @$"SELECT * FROM Data WHERE IsDeleted = 0 AND CompanyId = {companyId} 
+                            AND InstantId = {instantId}
+                            AND ProcessType IN('BUY', 'SELL') 
+                            AND Status IN ('NOT_PAID', 'PARTIALLY_PAID')
+                            ORDER BY MaturityDate";
+
+        var result = await _dbConnection.QueryAsync<DataModel>(sqlQuery);
         return result;
     }
 }

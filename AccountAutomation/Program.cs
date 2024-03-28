@@ -5,6 +5,7 @@ using Core.Utilities.Helpers;
 using Couchbase.Extensions.DependencyInjection;
 using DataAccess.Abstract;
 using DataAccess.Concrete;
+using DataAccess.Concrete.Repository;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Data.SqlClient;
@@ -23,7 +24,11 @@ using static Utilities.Extensions.DependencyInjectionExtensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents().AddHubOptions(opt =>
+{
+    opt.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+    opt.HandshakeTimeout = TimeSpan.FromSeconds(30);
+});
 
 
 
@@ -113,7 +118,7 @@ builder.Services.AddScoped<ICheckDal, CheckDal>();
 builder.Services.AddScoped<ICheckService, CheckManager>();
 builder.Services.AddScoped<IInstantDal, InstantDal>();
 builder.Services.AddScoped<IInstantService, InstantManager>();
-
+builder.Services.AddScoped<IRepositoryBase, DapperRepositoryBase>();
 
 #endregion
 
@@ -138,6 +143,8 @@ app.UseCookiePolicy();
 app.UseAntiforgery();
 
 app.UseAuthorization();
+
+app.UseWebSockets();
 
 app.MapRazorPages();
 app.MapDefaultControllerRoute();

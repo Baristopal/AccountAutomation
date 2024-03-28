@@ -1,8 +1,11 @@
 ﻿@using Business.Enums
 @using Entities.Models
+@using Newtonsoft.Json
 
 @inject IDefinationService definationService
 @inject MessageboxHelper messageboxHelper
+
+
 
 <MudOverlay Visible="@isBusy" DarkBackground="true">
     <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
@@ -65,24 +68,34 @@
     private async Task Submit()
     {
         isBusy = true;
-        var result = new BaseResponse<ExpenseTypeModel>();
 
         if (turkishStatus is not null)
             expenseType.Name = turkishStatus;
 
         if (isNew)
-            result = await definationService.Add(expenseType.Id, expenseType);
-        else
-            result = await definationService.Update(expenseType.Id, expenseType);
-
-        if (result.Success)
         {
-            messageboxHelper.ShowSuccessSnackMessage();
-            MudDialog.Close(expenseType);
+            var result = await definationService.Add(expenseType);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage("Stok/Masraf Tipi Eklenemedi", Severity.Error);
+                isBusy = false;
+                return;
+            }
         }
-        else
-            messageboxHelper.ShowSnackMessage("Stok/Masraf Tipi Eklenemedi", Severity.Error);
 
+        else
+        {
+            var result = await definationService.Update(expenseType);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage("Stok/Masraf Tipi Güncellenemedi", Severity.Error);
+                isBusy = false;
+                return;
+            }
+        }
+
+        messageboxHelper.ShowSuccessSnackMessage();
+        MudDialog.Close(expenseType);
         isBusy = true;
     }
 

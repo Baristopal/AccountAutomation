@@ -55,18 +55,18 @@
                     {
                         <tr>
                             <td>@item.Name</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 1).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 2).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 3).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 4).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 5).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 6).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 7).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 8).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 9).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 10).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 11).Sum(s => s.TLTotalAmount)</td>
-                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 12).Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 1)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 2)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 3)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 4)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 5)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 6)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 7)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 8)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 9)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 10)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 11)?.Sum(s => s.TLTotalAmount)</td>
+                            <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 12)?.Sum(s => s.TLTotalAmount)</td>
                             <th>@Math.Round(datas.Where(s => s.ExpenseType.Contains(item.Name)).Sum(s => s.TLTotalAmount), 2)</th>
                         </tr>
                     }
@@ -96,7 +96,7 @@
                         @foreach (var item in expenseTypes.Where(s => s.IsStocked == true))
                     {
                         <tr>
-                            <td>@item.Name</td>
+                            <td>@item.Name</td> 
                             <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 1).Sum(s => s.TLTotalAmount)</td>
                             <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 2).Sum(s => s.TLTotalAmount)</td>
                             <td>@datas.Where(s => s.ExpenseType.Contains(item.Name) && s.ProcessDate.Value.Month == 3).Sum(s => s.TLTotalAmount)</td>
@@ -117,7 +117,7 @@
                         <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">Stok Toplam</MudText></strong></td>
                         @for (int i = 1; i <= 12; i++)
                         {
-                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == true).Sum(s => s.TLTotalAmount), 2);
+                            var totalAmount = Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == true && s.ProcessType == ProcessTypeEnum.BUY.ToString()).Sum(s => s.TLTotalAmount), 2);
                             <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@totalAmount</MudText></strong> </td>
                         }
                         <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText Color="Color.Error">@Math.Round(datas.Where(s => s.IsStocked == true).Sum(s => s.TLTotalAmount), 2)</MudText></strong> </td>
@@ -155,6 +155,7 @@
                             {
                                 var totalAmount = (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString())).Sum(s => s.TLTotalAmount), 2) -
                                 Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.IsStocked == false && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false).Sum(s => s.TLTotalAmount), 2)) + (Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) && s.InvoiceNumber.Contains("GRSATIŞ")).Sum(s => s.TLTotalAmount), 2) - Math.Round(datas.Where(s => s.ProcessDate.Value.Month == i && s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) == false && s.InvoiceNumber.Contains("GRALIŞ")).Sum(s => s.TLTotalAmount), 2));
+
 
                                 yearlyTotalAmount = +totalAmount;
                                 <td style="border-bottom:solid 2pt #a5a5a5;"><strong><MudText>@totalAmount</MudText></strong> </td>

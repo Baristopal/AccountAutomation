@@ -12,7 +12,6 @@ public class InstantModel : BaseEntity
     public decimal CurrencyEncumbrance { get; set; }
     public decimal CurrencyReceivable { get; set; }
     public decimal CurrencyBalance { get; set; }
-    public int InstantId { get; set; }
     public string CompanyName { get; set; }
     public string CompanyOfficer { get; set; }
     public string CompanyAddress { get; set; }

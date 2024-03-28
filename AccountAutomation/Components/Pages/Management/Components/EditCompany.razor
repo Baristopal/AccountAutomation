@@ -1,5 +1,6 @@
 ﻿@using Library.Core.Utilities.Helpers
 @inject ICompanyService companyService
+@inject MessageboxHelper messageboxHelper
 
 <MudDialog DisableSidePadding=true>
     <DialogContent>
@@ -48,12 +49,24 @@
     {
         if (isNew)
         {
-            await companyService.AddCompany(Company);
+            var result = await companyService.AddCompany(Company);
+            if(result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                return;
+            }
+            messageboxHelper.ShowSuccessSnackMessage();
             mudDialog.Close(Company);
         }
         else
         {
-            await companyService.UpdateCompany(Company);
+            var result = await companyService.UpdateCompany(Company);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                return;
+            }
+            messageboxHelper.ShowSuccessSnackMessage();
             mudDialog.Close();
         }
     }

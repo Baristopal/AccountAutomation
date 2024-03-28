@@ -1,7 +1,10 @@
-﻿namespace Entities.Abstract;
+﻿using Dapper.Contrib.Extensions;
+
+namespace Entities.Abstract;
 public class BaseEntity
 {
-    public virtual string Id { get; set; } = Guid.NewGuid().ToString();
+    [Key]
+    public int Id { get; set; }
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     public DateTime UpdatedDate { get; set; } = DateTime.Now;
     public bool IsDeleted { get; set; } = false;

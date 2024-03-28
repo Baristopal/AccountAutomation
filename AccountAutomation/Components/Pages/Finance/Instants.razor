@@ -5,6 +5,7 @@
 @inject IInstantService instantService;
 @inject MessageboxHelper messageboxHelper;
 @inject IDialogService dialogService;
+@inject IDataService dataService;
 
 @attribute [Authorize(Roles = "COMPANY,ADMIN")]
 
@@ -19,74 +20,6 @@
     <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Cari Bakiye</MudText>
     <MudButton OnClick="@(()=> EditInstant(new InstantModel()))" Color="@Color.Success" Variant="Variant.Filled">Ekle</MudButton>
 </MudStack>
-
-@* <MudDataGrid T="InstantModel" Items="instants" ReadOnly="false" EditMode="DataGridEditMode.Cell" Bordered="true" Dense="true" EditTrigger="DataGridEditTrigger.Manual" StartedEditingItem="@StartedEditingItem" CanceledEditingItem="@CanceledEditingItem" CommittedItemChanges="@CommittedItemChanges" id="dataGrid">
-    <Columns>
-        <PropertyColumn Property="x => x.TLEncumbrance" Title="TL Borç" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudNumericField @bind-Value="context.Item.TLEncumbrance" HideSpinButtons=true Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.TLReceivable" Title="TL Alacak" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudNumericField @bind-Value="context.Item.TLReceivable" HideSpinButtons=true Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.TLBalance" Title="TL Bakiye" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudNumericField @bind-Value="context.Item.TLBalance" HideSpinButtons=true Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CurrencyEncumbrance" Title="Döviz Borç" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudNumericField @bind-Value="context.Item.CurrencyEncumbrance" HideSpinButtons=true Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CurrencyReceivable" Title="Döviz Alacak" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudNumericField @bind-Value="context.Item.CurrencyReceivable" HideSpinButtons=true Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CurrencyBalance" Title="Döviz Bakiye" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudNumericField @bind-Value="context.Item.CurrencyBalance" HideSpinButtons=true Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CompanyName" Title="Firma Ünvanı" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudTextField @bind-Value="context.Item.CompanyName" Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CompanyOfficer" Title="Firma Yetkilisi" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudTextField @bind-Value="context.Item.CompanyOfficer" Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.CompanyAddress" Title="Firma Adresi" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudTextField @bind-Value="context.Item.CompanyAddress" Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.TaxHouse" Title="Vergi Dairesi" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudTextField @bind-Value="context.Item.TaxHouse" Required=false Margin="@Margin.Dense" />
-            </EditTemplate>
-        </PropertyColumn>
-        <PropertyColumn Property="x => x.TaxNumber" Title="Vergi Numarası" Filterable="false" Sortable="false" Required=false />
-        <PropertyColumn Property="x => x.LandPhoneNumber" Title="Sabit Telefon" Filterable="false" Sortable="false" Required=false />
-        <PropertyColumn Property="x => x.PhoneNumber" Title="Cep Telefonu" Filterable="false" Sortable="false" Required=false />
-        <PropertyColumn Property="x => x.Email" Title="E-Mail" Filterable="false" Sortable="false" Required=false />
-        <PropertyColumn Property="x => x.Status" Title="Firma Türü" Filterable="false" Sortable="false" Required=false>
-            <EditTemplate>
-                <MudSelect @bind-Value="context.Item.Status" Required=false Margin="@Margin.Dense" Dense=true AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@("ALICI")">ALICI</MudSelectItem>
-                    <MudSelectItem Value="@("SATICI")">SATICI</MudSelectItem>
-                    <MudSelectItem Value="@("MASRAF")">MASRAF</MudSelectItem>
-                </MudSelect>
-            </EditTemplate>
-        </PropertyColumn>
-    </Columns>
-</MudDataGrid> *@
 
 <MudSimpleTable Dense=true Bordered=true Striped=true Hover=true>
     <thead>
@@ -113,12 +46,32 @@
         @foreach (var instant in instants)
         {
             <tr>
-                <td>@instant.TLEncumbrance</td>
-                <td>@instant.TLReceivable</td>
-                <td>@instant.TLBalance</td>
-                <td>@instant.CurrencyEncumbrance</td>
-                <td>@instant.CurrencyReceivable</td>
-                <td>@instant.CurrencyBalance</td>
+                <td>
+                    @{
+                        var TLEncumbrance = datas.Where(s => s.InstantId == instant.Id && s.ProcessType == ProcessTypeEnum.BUY.ToString() || s.ProcessType == ProcessTypeEnum.COLLECT.ToString() || s.ProcessType == ProcessTypeEnum.SALE_REFUND.ToString()).Sum(s => s.TLTotalAmount);
+                    }
+                    @TLEncumbrance
+                </td>
+                <td>
+                    @{
+                        var TLReceivable = datas.Where(s => s.InstantId == instant.Id && s.ProcessType == ProcessTypeEnum.SELL.ToString() || s.ProcessType == ProcessTypeEnum.PAY.ToString() || s.ProcessType == ProcessTypeEnum.PURCHASE_REFUND.ToString()).Sum(s => s.TLTotalAmount);
+                    }
+                    @TLReceivable
+                </td>
+                <td style="@((TLEncumbrance - TLReceivable) < 0 ? "color:red" : "")">@(TLEncumbrance - TLReceivable)</td>
+                <td>
+                    @{
+                        var CurrencyEncumbrance = datas.Where(s => s.InstantId == instant.Id && s.ProcessType == ProcessTypeEnum.BUY.ToString() || s.ProcessType == ProcessTypeEnum.COLLECT.ToString() || s.ProcessType == ProcessTypeEnum.SALE_REFUND.ToString()).Sum(s => s.CurrencyTotalAmount);
+                    }
+                    @CurrencyEncumbrance
+                </td>
+                <td>
+                    @{
+                        var CurrencyReceivable = datas.Where(s => s.InstantId == instant.Id && s.ProcessType == ProcessTypeEnum.SELL.ToString() || s.ProcessType == ProcessTypeEnum.PAY.ToString() || s.ProcessType == ProcessTypeEnum.PURCHASE_REFUND.ToString()).Sum(s => s.CurrencyTotalAmount);
+                    }
+                    @CurrencyReceivable
+                </td>
+                <td style="@((CurrencyEncumbrance - CurrencyReceivable) < 0 ? "color:red" : "")">@(CurrencyEncumbrance - CurrencyReceivable)</td>
                 <td>@instant.CompanyName</td>
                 <td>@instant.CompanyOfficer</td>
                 <td>@instant.CompanyAddress</td>
@@ -128,7 +81,7 @@
                 <td>@instant.PhoneNumber</td>
                 <td>@instant.Email</td>
                 <td>
-                    @(EnumHelper<InstantTypeEnum>.GetDisplayValue(EnumHelper<InstantTypeEnum>.Parse(instant.Status)))
+                    @(EnumHelper<InstantTypeEnum>.GetDisplayValue(instant.Status))
                 </td>
                 <td>
                     <MudItem Class="d-flex">
@@ -146,11 +99,13 @@
     private bool isBusy = false;
 
     private List<InstantModel> instants = new();
+    private List<DataModel> datas = new();
 
     protected override async Task OnInitializedAsync()
     {
         isBusy = true;
         await GetAllInstants();
+        await GetDatas();
         isBusy = false;
     }
 
@@ -163,6 +118,20 @@
             return;
         }
         instants = result.Data.ToList();
+    }
+
+    private async Task GetDatas()
+    {
+        isBusy = true;
+        var result = await dataService.GetAllForInstant();
+        if (result.Success == false)
+        {
+            messageboxHelper.ShowSnackMessage(result.Message, Severity.Error);
+            return;
+        }
+
+        datas = result.Data.ToList();
+        isBusy = false;
     }
 
     private async Task DeleteInstant(InstantModel model)
@@ -185,7 +154,7 @@
     private async Task EditInstant(InstantModel model)
     {
         bool isNew = false;
-        if (String.IsNullOrEmpty(model.CompanyName) == false)
+        if (String.IsNullOrEmpty(model.CompanyName))
             isNew = true;
 
         DialogParameters parameters = new();

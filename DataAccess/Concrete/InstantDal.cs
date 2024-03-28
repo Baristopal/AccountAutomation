@@ -1,37 +1,39 @@
-﻿using Core.Utilities;
+﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using System.Data;
 
 namespace DataAccess.Concrete;
 public class InstantDal : IInstantDal
 {
-    private readonly INoSqlHelper _noSqlHelper;
+    private readonly IDbConnection _dbConnection;
 
-    public InstantDal(INoSqlHelper noSqlHelper)
+    public InstantDal(IDbConnection dbConnection)
     {
-        _noSqlHelper = noSqlHelper;
+        _dbConnection = dbConnection;
     }
 
     public async Task Add(InstantModel model)
     {
-        await _noSqlHelper.InsertAsync(model.Id, model);
+        await _dbConnection.InsertAsync(model);
     }
 
     public async Task Update(InstantModel model)
     {
-        await _noSqlHelper.UpdateAsync(model.Id, model);
+        await _dbConnection.UpdateAsync(model);
     }
 
     public async Task<IEnumerable<InstantModel>> GetAll(int companyId)
     {
-        string query = $"SELECT c.* FROM Data._default.Instant as c WHERE c.isDeleted = false AND c.companyId = {companyId} ORDER BY c.createdDate";
-        var result = await _noSqlHelper.QueryAsync<InstantModel>(query);
+        string query = $"SELECT * FROM Instant WHERE IsDeleted = 0 AND CompanyId = {companyId} ORDER BY CreatedDate";
+        var result = await _dbConnection.QueryAsync<InstantModel>(query);
         return result;
     }
 
     public async Task<InstantModel> GetById(string id)
     {
-        var result = await _noSqlHelper.GetByIdAsync<InstantModel>(id);
+        var result = await _dbConnection.GetAsync<InstantModel>(id);
         return result;
     }
 }

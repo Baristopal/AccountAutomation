@@ -106,7 +106,7 @@
                 <MudNumericField Label="Fire Miktarı" Variant="Variant.Outlined" ReadOnly=true HideSpinButtons=true Margin="Margin.Dense" Value="productTracking.WasteQuantity"></MudNumericField>
             </MudItem>
             <MudItem xs="@(productTracking.Currency != CurrencyEnum.TL.ToString() ? 4 : 8)">
-                <MudDatePicker Label="Çıkış Tarihi" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" DateChanged="@(s=> CalculateDelayTimeAndProducttionDate(DateTime.MinValue,s,DateTime.MinValue))" Date="productTracking.DicontinuationDate"></MudDatePicker>
+                <MudDatePicker Label="Çıkış Tarihi" Variant="Variant.Outlined" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" Margin="Margin.Dense" DateChanged="@(s=> CalculateDelayTimeAndProducttionDate(DateTime.MinValue,s,DateTime.MinValue))" Date="productTracking.DiscontinuationDate"></MudDatePicker>
             </MudItem>
             <MudItem xs="4">
                 <MudTextField Label="Gecikme Süresi" Style="color:red" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly=true Value="productTracking.DelayTime"></MudTextField>
@@ -179,7 +179,7 @@
         if (productTracking.Quantity != 0 && productTracking.Grammage != 0)
         {
             var value = productTracking?.Quantity / productTracking?.Grammage ?? 0;
-            decimal estimatedQuantity = Math.Round(value);
+            int estimatedQuantity = (int)value;
             productTracking.EstimatedQuantity = estimatedQuantity;
             StateHasChanged();
             if (productTracking.ActualQuantity != 0)
@@ -205,15 +205,15 @@
         if (deliveryDate != DateTime.MinValue)
             productTracking.DeliveryDate = deliveryDate;
         if (dicontinuationDate != DateTime.MinValue)
-            productTracking.DicontinuationDate = dicontinuationDate;
+            productTracking.DiscontinuationDate = dicontinuationDate;
         if (processDate != DateTime.MinValue)
             productTracking.ProcessDate = processDate;
 
 
-        if (productTracking.DeliveryDate != null && productTracking.DicontinuationDate != null && productTracking.ProcessDate != null)
+        if (productTracking.DeliveryDate != null && productTracking.DiscontinuationDate != null && productTracking.ProcessDate != null)
         {
-            TimeSpan? value = productTracking.DeliveryDate - productTracking.DicontinuationDate;
-            TimeSpan? productionTimeValue = productTracking.DicontinuationDate - productTracking.ProcessDate;
+            TimeSpan? value = productTracking.DeliveryDate - productTracking.DiscontinuationDate;
+            TimeSpan? productionTimeValue = productTracking.DiscontinuationDate - productTracking.ProcessDate;
             int delayTime = (int)value?.TotalDays;
             int timeInProduction = (int)productionTimeValue?.TotalDays;
             productTracking.DelayTime = delayTime;

@@ -11,25 +11,27 @@ namespace Business.Concrete;
 public class DefinationManager : IDefinationService
 {
     private readonly IDefinationDal _definationDal;
+    private readonly IRepositoryBase _dapperRepository;
     private readonly ILogger<DefinationManager> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly int _companyId;
-    public DefinationManager(IDefinationDal definationDal, ILogger<DefinationManager> logger, IHttpContextAccessor httpContextAccessor)
+    public DefinationManager(IDefinationDal definationDal, ILogger<DefinationManager> logger, IHttpContextAccessor httpContextAccessor, IRepositoryBase dapperRepository)
     {
         _definationDal = definationDal;
         _logger = logger;
         _httpContextAccessor = httpContextAccessor;
         _companyId = httpContextAccessor.GetCompanyId();
+        _dapperRepository = dapperRepository;
     }
 
-    public async Task<BaseResponse<T>> Add<T>(string documentId, T model)
+    public async Task<BaseResponse<T>> Add<T>(T model)
     {
         try
         {
-            Type type = typeof(T);
+            Type type = model.GetType();
             PropertyInfo propertyInfo = type?.GetProperty("CompanyId");
             propertyInfo.SetValue(model, _companyId);
-            await _definationDal.InsertAsync<T>(documentId, model);
+            await _dapperRepository.InsertAsync(model);
             return new BaseResponse<T>(model, true);
         }
         catch (Exception ex)
@@ -39,11 +41,11 @@ public class DefinationManager : IDefinationService
         }
     }
 
-    public async Task<BaseResponse<T>> Update<T>(string documentId, T model)
+    public async Task<BaseResponse<T>> Update<T>(T model)
     {
         try
         {
-            await _definationDal.UpdateAsync<T>(documentId, model);
+            await _dapperRepository.UpdateAsync(model);
             return new BaseResponse<T>(model, true);
         }
         catch (Exception ex)
@@ -64,7 +66,7 @@ public class DefinationManager : IDefinationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<ExpenseTypeModel>>([],false, ex.Message);
+            return new BaseResponse<IEnumerable<ExpenseTypeModel>>([], false, ex.Message);
         }
     }
 
@@ -78,7 +80,7 @@ public class DefinationManager : IDefinationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<T>>(new List<T>(),false, ex.Message);
+            return new BaseResponse<IEnumerable<T>>([], false, ex.Message);
         }
     }
 

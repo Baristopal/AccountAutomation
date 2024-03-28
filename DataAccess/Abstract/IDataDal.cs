@@ -11,4 +11,7 @@ public interface IDataDal
     Task<DataModel> GetById(string id);
     Task<IEnumerable<CaseModel>> GetCase(int companyId);
     Task<IEnumerable<DataModel>> GetAllDataWithStockExpenses(int companyId);
+    Task<IEnumerable<DataModel>> GetAll(int companyId);
+    Task<IEnumerable<DataModel>> GetAllForInstant(int companyId);
+    Task<IEnumerable<DataModel>> GetAllNotPaidInvoices(int companyId, int instantId);
 }

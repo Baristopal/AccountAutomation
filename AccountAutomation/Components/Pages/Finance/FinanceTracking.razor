@@ -1,9 +1,11 @@
 ﻿@page "/Finance/FinanceTracking"
 @using Microsoft.AspNetCore.Authorization
+@using WebUI.Components.Pages.Finance.Components
 
 @inject IDataService dataService
 @inject MessageboxHelper messageBoxHelper
 @inject ICheckService checkService
+@inject IDialogService dialogService
 
 @attribute [Authorize(Roles = "COMPANY,ADMIN")]
 
@@ -16,15 +18,13 @@
 
 <MudStack Class="mb-2 pa-3" Row=true Justify="Justify.SpaceBetween">
     <MudText Align="Align.Start" Typo="Typo.h5" Color="Color.Primary">Finans Takip</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="AddPayment">Ödeme Gir</MudButton>
 </MudStack>
 
 <MudGrid Class="mb-4">
     <MudItem xs="3">
         <MudChart ChartType="ChartType.Donut" LegendPosition="Position.Right" Width="200px" Height="200px" InputData="@amounts.ToArray()" InputLabels="@types.ToArray()">
-            <CustomGraphics>
-                <text class="donut-inner-text" x="50%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">Nakit Kasa</text>
-                <text class="donut-inner-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="4">10000 TL</text>
-            </CustomGraphics>
+
         </MudChart>
     </MudItem>
     <MudItem xs="4">
@@ -82,20 +82,20 @@
                     }
                     @type
                 </td>
-                <td>@data.ProcessType</td>
+                <td>@(EnumHelper<ProcessTypeEnum>.GetDisplayValue(data.ProcessType))</td>
                 <td>@data.ProcessDate.Value.ToShortDateString()</td>
                 <td>@data.MaturityDate.Value.ToShortDateString()</td>
                 <td>@data.InvoiceNumber</td>
-                <td>Firma Adı</td>
+                <td>@data.InstantName</td>
                 <td>Grup</td>
                 <td>@data.Description</td>
                 <td>@data.ExpenseType</td>
                 <td>@data.Stock</td>
-                <td>@data.Unit</td>
+                <td>@(EnumHelper<UnitEnum>.GetDisplayValue(data.Unit))</td>
                 <td>@data.TaxAmount</td>
                 <td>@data.Currency</td>
                 <td>@data.CurrencyTotalAmount</td>
-                <td>@data.TLTotalAmount</td>
+                <td>@(data.TLTotalAmount - data.PaidAmount)</td>
             </tr>
         }
     </tbody>
@@ -143,7 +143,19 @@
             else if (item.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
                 amount = -Decimal.ToDouble(item.TLTotalAmount);
 
-            types.Add($"{item.SalesType} | {amount} TL");
+            if (types.Any(s => s.Contains(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(item.SalesType))))
+            {
+                var index = types.FindIndex(s => s.Contains(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(item.SalesType)));
+                var type = types[index].Split('|').LastOrDefault().Trim();
+                var Tlindex = type.IndexOf("TL");
+                var price = Double.Parse(type.Remove(Tlindex).Trim());
+                var newPrice = price + amount;
+                types[index] = $"{EnumHelper<PurchaseTypeEnum>.GetDisplayValue(item.SalesType)} | {newPrice} TL";
+                amounts[index] = newPrice;
+                continue;
+            }
+
+            types.Add($"{EnumHelper<PurchaseTypeEnum>.GetDisplayValue(item.SalesType)} | {amount} TL");
             if (amount < 0)
                 amount = Math.Abs(amount);
 
@@ -181,8 +193,10 @@
 
         if (datas.Count > 0)
         {
-            var collectetable = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.PAY.ToString())).Sum(s => s.TLTotalAmount);
-            var payable = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString())).Sum(s => s.TLTotalAmount);
+            var payable = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.PAY.ToString())).Sum(s => s.TLTotalAmount);
+            payable = payable - datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.BUY.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.PAY.ToString())).Sum(s => s.PaidAmount);
+            var collectetable = datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString())).Sum(s => s.TLTotalAmount);
+            collectetable = collectetable - datas.Where(s => s.ProcessType.Contains(ProcessTypeEnum.SELL.ToString()) || s.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString())).Sum(s => s.PaidAmount);
 
             values = new List<double> { Decimal.ToDouble(collectetable), Decimal.ToDouble(payable) };
             titles = new List<string> { $"Tahsil Edilecekler Toplamı {collectetable} TL", $"Ödenecekler Toplamı {payable} TL" };
@@ -199,5 +213,14 @@
         isBusy = true;
         await GetDatas();
         isBusy = false;
+    }
+
+
+    private async Task AddPayment()
+    {
+        DialogParameters parameters = new();
+        parameters.Add("data", new DataModel());
+        var dialog = dialogService.Show<AddPayment>("", parameters, MudHelper.MudDialogHelper.DialogOptionsExtraSmall);
+        var dialogResult = await dialog.Result;
     }
 }

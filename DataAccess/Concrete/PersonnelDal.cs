@@ -1,38 +1,40 @@
-﻿using Core.Utilities;
+﻿using Dapper;
+using Dapper.Contrib.Extensions;
 using DataAccess.Abstract;
 using Entities.Concrete;
+using System.Data;
 
 namespace DataAccess.Concrete;
 public class PersonnelDal : IPersonnelDal
 {
-    private readonly INoSqlHelper _nosqlHelper;
+    private readonly IDbConnection _dbConnection;
 
-    public PersonnelDal(INoSqlHelper noSqlHelper)
+    public PersonnelDal(IDbConnection dbConnection)
     {
-        _nosqlHelper = noSqlHelper;
+        _dbConnection = dbConnection;
     }
 
     public async Task<IEnumerable<PersonnelModel>> GetAll(int companyId)
     {
-        string query = $"SELECT p.* FROM Data._default.Personnel as p WHERE p.isDeleted = false AND p.companyId = {companyId} ORDER BY p.createdDate DESC";
-        var result = await _nosqlHelper.QueryAsync<PersonnelModel>(query);
+        string query = $"SELECT * FROM Personnel WHERE IsDeleted = 0 AND CompanyId = {companyId} ORDER BY CreatedDate DESC";
+        var result = await _dbConnection.QueryAsync<PersonnelModel>(query);
         return result;
     }
 
     public async Task<PersonnelModel> GetById(string id)
     {
-        var result = await _nosqlHelper.GetByIdAsync<PersonnelModel>(id);
+        var result = await _dbConnection.GetAsync<PersonnelModel>(id);
         return result;
     }
 
     public async Task Insert(PersonnelModel model)
     {
-        await _nosqlHelper.InsertAsync(model.Id, model);
+        await _dbConnection.InsertAsync(model);
     }
 
     public async Task Update(PersonnelModel model)
     {
-        await _nosqlHelper.UpdateAsync(model.Id, model);
+        await _dbConnection.UpdateAsync(model);
     }
 
 }

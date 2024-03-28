@@ -21,7 +21,7 @@ namespace Core.Utilities.Helpers
             var dictionary = new Dictionary<string, string>();
             foreach (var enumName in enumNames)
             {
-                var enumDisplayValue = GetDisplayValue(Parse(enumName));
+                var enumDisplayValue = GetDisplayValue(enumName);
                 dictionary.Add(enumName, enumDisplayValue);
             }
             return dictionary;
@@ -40,9 +40,14 @@ namespace Core.Utilities.Helpers
             return resourceKey; // Fallback with the key name
         }
 
-        public static string GetDisplayValue(T value)
+        public static string GetDisplayValue(string value)
         {
-            var fieldInfo = value.GetType().GetField(value.ToString());
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            var parsedValue = (T)Enum.Parse(typeof(T), value, true);
+
+            var fieldInfo = parsedValue.GetType().GetField(parsedValue.ToString());
 
             var descriptionAttributes = fieldInfo.GetCustomAttributes(
                 typeof(DisplayAttribute), false) as DisplayAttribute[];
@@ -51,7 +56,7 @@ namespace Core.Utilities.Helpers
                 return LookupResource(descriptionAttributes[0].ResourceType, descriptionAttributes[0].Name);
 
             if (descriptionAttributes == null) return string.Empty;
-            var asd = descriptionAttributes.Length > 0 ? descriptionAttributes[0].Name : value.ToString();
+            var asd = descriptionAttributes.Length > 0 ? descriptionAttributes[0].Name : parsedValue.ToString();
             return asd;
         }
     }

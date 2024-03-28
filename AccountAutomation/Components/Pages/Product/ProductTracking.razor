@@ -49,6 +49,7 @@
                     <th>Üretimden Çıkış Tarihi</th>
                     <th>Gecikme Süresi</th>
                     <th>Üretimde Geçen Süre</th>
+                    <th>Birim Maliyet</th>
                     <th>Toplam Maliyet</th>
                 </tr>
             </thead>
@@ -76,8 +77,8 @@
                             }
                             @type
                         </td>
-                        <td>@item.ProcessDate</td>
-                        <td>@item.DeliveryDate</td>
+                        <td>@item.ProcessDate?.ToShortDateString()</td>
+                        <td>@item.DeliveryDate?.ToShortDateString()</td>
                         <td>@item.InvoiceNumber</td>
                         <td>@item.CompanyName</td>
                         <td>@item.Description</td>
@@ -95,7 +96,7 @@
                         <td>@item.Grammage</td>
                         <td>@item.ActualQuantity</td>
                         <td>@item.WasteQuantity</td>
-                        <td>@item.DicontinuationDate</td>
+                        <td>@item.DiscontinuationDate?.ToShortDateString()</td>
                         <td>@item.DelayTime</td>
                         <td>@item.TimeInProduction</td>
                         <td>@item.UnitCost</td>

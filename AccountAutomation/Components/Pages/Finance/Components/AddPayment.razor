@@ -1,0 +1,349 @@
+﻿@inject MessageboxHelper messageBoxHelper
+@inject IInstantService instantService
+@inject IDataService dataService
+
+
+<MudOverlay Visible="@isBusy" DarkBackground="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+</MudOverlay>
+
+
+
+<MudDialog Style="max-height: 90vh;">
+    <DialogContent>
+        <MudGrid Class="d-flex justify-end">
+            <MudItem xs="6" Class="d-flex">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" Label="USD Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.USDExchange"></MudNumericField>
+                <MudNumericField T="decimal" Variant="Variant.Outlined" Label="EURO Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.EURExchange"></MudNumericField>
+            </MudItem>
+        </MudGrid>
+        <MudGrid>
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="İşlem Tipi"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchProcessTypeFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 Context="type"
+                                 ValueChanged="OnProcessTypeSelect"
+                                 AutoFocus=true />
+            </MudItem>
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="İşlem Türü"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchPurchaseTypeFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 Context="type"
+                                 ValueChanged="OnPurchaseTypeSelect" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudDatePicker Label="Tarih" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="data.ProcessDate" Margin="Margin.Dense"></MudDatePicker>
+            </MudItem>
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="Cari"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchInstantFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 Context="type"
+                                 ValueChanged="OnInstantSelect" />
+            </MudItem>
+
+            @if (invoices.Count > 0)
+            {
+                <MudItem xs="12">
+                    <MudSimpleTable Dense=true Hover=true Striped=true>
+                        <thead>
+                            <tr>
+                                <th>Fatura No</th>
+                                <th>Açıklama</th>
+                                <th>Tutar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in invoices)
+                            {
+                                <tr>
+                                    <td>@item.InvoiceNumber</td>
+                                    <td>@item.Description</td>
+                                    <td>@item.TLTotalAmount TL</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudTextField T="string" Lines=5 Label="Açıklama" Variant="Variant.Outlined" Margin="Margin.Dense" @bind-Value="data.Description"></MudTextField>
+            </MudItem>
+        </MudGrid>
+        <MudDivider Class="mt-4 mb-4" />
+
+        <MudGrid>
+            <MudItem xs="6">
+                <MudAutocomplete T="string"
+                                 Label="Döviz Birimi"
+                                 AnchorOrigin="Origin.BottomCenter"
+                                 Dense=true
+                                 Margin="Margin.Dense"
+                                 MaxItems="null"
+                                 Clearable=true
+                                 SelectValueOnTab=true
+                                 SelectOnClick=false
+                                 ResetValueOnEmptyText=true
+                                 SearchFunc="SearchCurrencyTypeFunc"
+                                 CoerceValue=true
+                                 Variant="Variant.Outlined"
+                                 @bind-Value="data.Currency" />
+            </MudItem>
+            <MudItem xs="6">
+                <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="Döviz İşlem Toplamı" Margin="Margin.Dense" ValueChanged="ChangedCurrencyTotalAmount"></MudNumericField>
+            </MudItem>
+            <MudItem xs="12">
+                <MudNumericField @ref="numericField" T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="TL İşlem Toplamı" Margin="Margin.Dense" @bind-Value="data.TLTotalAmount"></MudNumericField>
+            </MudItem>
+
+            @if (invoices.Count > 0 && data.TLTotalAmount > 0)
+            {
+                <MudItem xs="12">
+                    <MudSimpleTable Dense=true Hover=true Striped=true>
+                        <thead>
+                            <tr>
+                                <th colspan="3" style="text-align:center">ÖDEMEDEN SONRA KALAN</th>
+                            </tr>
+                            <tr>
+                                <th>Fatura No</th>
+                                <th>Açıklama</th>
+                                <th>Kalan Tutar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in invoices)
+                            {
+                                var paidAmount = data.TLTotalAmount;
+                                <tr>
+                                    <td>@item.InvoiceNumber</td>
+                                    <td>@item.Description</td>
+                                    <td>@(item.TLTotalAmount - paidAmount) TL</td>
+                                </tr>
+                                paidAmount = paidAmount - item.TLTotalAmount;
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                </MudItem>
+            }
+
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudItem Class="mr-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">İptal</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Kaydet</MudButton>
+        </MudItem>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public DataModel data { get; set; }
+
+
+    private List<InstantModel> instants = new();
+    private MudNumericField<decimal> numericField;
+    private List<DataModel> invoices = new();
+
+
+    private bool isBusy = false;
+    private Dictionary<string, string> processTypes = EnumHelper<ProcessTypeEnum>.GetNamesAndDisplayNames(typeof(ProcessTypeEnum));
+    private Dictionary<string, string> purchaseTypes = EnumHelper<PurchaseTypeEnum>.GetNamesAndDisplayNames(typeof(PurchaseTypeEnum));
+
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task Submit()
+    {
+        if (data.InstantId == 0)
+        {
+            messageBoxHelper.ShowSnackMessage("Cari alanı boş bırakılamaz", Severity.Error);
+            return;
+        }
+
+        var paidAmount = data.TLTotalAmount;
+
+        if (invoices.Count > 0)
+        {
+            foreach (var item in invoices)
+            {
+                if (item.TLTotalAmount <= paidAmount)
+                {
+                    item.PaidAmount = item.TLTotalAmount;
+                    item.Status = PaidStatusEnum.PAID.ToString();
+                    var result = await dataService.UpdateData(item);
+                    if (result.Success)
+                        paidAmount = paidAmount - item.TLTotalAmount;
+                    else
+                        return;
+                }
+                else
+                {
+                    item.PaidAmount = paidAmount;
+                    item.Status = PaidStatusEnum.PARTIALLY_PAID.ToString();
+                    var result = await dataService.UpdateData(item);
+                    if (result.Success)
+                        paidAmount = paidAmount - paidAmount;
+                    else
+                        return;
+                }
+            }
+
+            var dataResult = await dataService.AddData(data);
+            if(dataResult.Success == false)
+            {
+                messageBoxHelper.ShowSnackMessage($"{EnumHelper<ProcessTypeEnum>.GetDisplayValue(data.ProcessType)}", Severity.Error);
+                return;
+            }
+        }
+
+        messageBoxHelper.ShowSuccessSnackMessage();
+        MudDialog.Close();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isBusy = true;
+        instants = (await instantService.GetAllInstant()).Data.ToList();
+        processTypes = processTypes.Where(s => s.Key == ProcessTypeEnum.PAY.ToString() || s.Key == ProcessTypeEnum.COLLECT.ToString()).ToDictionary();
+        isBusy = false;
+    }
+
+    #region Methods
+
+
+    private async Task<IEnumerable<string>> SearchProcessTypeFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(processTypes.Select(s => s.Value));
+        return await Task.FromResult(processTypes.Select(s => s.Value).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private void OnProcessTypeSelect(string processType)
+    {
+        if (string.IsNullOrEmpty(processType) == false)
+        {
+            data.ProcessType = processTypes.SingleOrDefault(s => s.Value == processType).Key;
+        }
+        else
+            data.ProcessType = "";
+    }
+
+    private async Task<IEnumerable<string>> SearchPurchaseTypeFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(purchaseTypes.Select(s => s.Value));
+        return await Task.FromResult(purchaseTypes.Select(s => s.Value).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private void OnPurchaseTypeSelect(string purchaseType)
+    {
+        if (string.IsNullOrEmpty(purchaseType) == false)
+        {
+            data.SalesType = purchaseTypes.SingleOrDefault(s => s.Value == purchaseType).Key;
+        }
+        else
+            data.SalesType = "";
+    }
+
+    private async Task<IEnumerable<string>> SearchInstantFunc(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(instants.Select(s => s.CompanyName));
+        return await Task.FromResult(instants.Select(s => s.CompanyName).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private async Task OnInstantSelect(string instantName)
+    {
+        if (string.IsNullOrEmpty(instantName) == false)
+        {
+            data.InstantId = (int)instants.SingleOrDefault(s => s?.CompanyName == instantName).Id;
+            isBusy = true;
+            var result = await dataService.GetAllNotPaidInvoices(data.InstantId);
+            if (result.Success == false || result.Data.Count() == 0)
+            {
+                messageBoxHelper.ShowSnackMessage($"Hata: {result.Message}", Severity.Error);
+                isBusy = false;
+                return;
+            }
+
+            invoices = result.Data.ToList();
+            isBusy = false;
+        }
+        else
+        {
+            data.InstantId = 0;
+            invoices.Clear();
+        }
+    }
+
+    private async Task<IEnumerable<string>> SearchCurrencyTypeFunc(string value)
+    {
+        var currencyTypes = Enum.GetNames(typeof(CurrencyEnum));
+
+        if (string.IsNullOrEmpty(value))
+            return await Task.FromResult(currencyTypes.Select(s => s));
+        return await Task.FromResult(currencyTypes.Select(s => s).Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase)));
+    }
+
+    private void ChangedCurrencyTotalAmount(decimal amount)
+    {
+        if (data.EURExchange == 0 && data.USDExchange == 0)
+        {
+            messageBoxHelper.ShowSnackMessage("Döviz kurlarını giriniz", Severity.Error);
+            return;
+        }
+
+        data.CurrencyTotalAmount = amount;
+
+        if (data.Currency == CurrencyEnum.USD.ToString() && data.USDExchange > 0)
+            data.TLTotalAmount = data.CurrencyTotalAmount * data.USDExchange;
+        if (data.Currency == CurrencyEnum.EUR.ToString() && data.EURExchange > 0)
+            data.TLTotalAmount = data.CurrencyTotalAmount * data.EURExchange;
+
+
+        numericField.Value = data.TLTotalAmount;
+        numericField.Text = data.TLTotalAmount.ToString();
+    }
+
+    #endregion
+
+}

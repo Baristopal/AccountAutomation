@@ -23,7 +23,7 @@ public class CompanyManager : ICompanyService
         try
         {
             var result = await GetCompanyByEmail(model.Email);
-            if (result.Success)
+            if (result.Success && result.Data is not null)
                 return new BaseResponse<CompanyModel>(false, "Email already exists");
 
             HashingHelper.CreatePasswordHash(model.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -85,20 +85,6 @@ public class CompanyManager : ICompanyService
             return new BaseResponse<CompanyModel>(new CompanyModel(), false, ex.Message);
         }
 
-    }
-
-    public async Task<BaseResponse<bool>> DeleteCompanyById(string id)
-    {
-        try
-        {
-            await _companyDal.DeleteByIdAsync(id);
-            return new BaseResponse<bool>(true, true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<bool>(false, false, ex.Message);
-        }
     }
 
     public async Task<BaseResponse<CompanyModel>> GetCompanyByEmail(string email)

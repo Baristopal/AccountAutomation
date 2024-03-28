@@ -33,44 +33,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (int i = 0; i < datas.Count; i++)
+                    @for (int i = 0; i < summaryList.Count; i++)
                     {
-                        var data = datas[i];
+                        var data = summaryList[i];
                         <tr>
-                            <td rowspan="2" style="border-left: 1pt solid #e0e0e0ff;">@(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(EnumHelper<PurchaseTypeEnum>.Parse(data.SalesType)))</td>
-                            <td style="@bottomGrayColor">
-                                @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
-                                {
-                                    ingoingCash = outgoingCash + data.CurrencyTotalAmount;
-                                    var price = ingoingCash;
-                                    @price
-                                }
-                                else if (data.ProcessType.Contains(ProcessTypeEnum.COLLECT.ToString()))
-                                {
-                                    ingoingCash = outgoingCash + data.TLTotalAmount;
-                                    var price = ingoingCash;
-                                    @price
-                                }
-                            </td>
-                            <td style="@bottomGrayColor">
-                                @if (data.CurrencyTotalAmount > 0 && data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
-                                {
-                                    outgoingCash = outgoingCash + data.CurrencyTotalAmount;
-                                    var price = outgoingCash;
-                                    @price
-                                }
-                                else if (data.ProcessType.Contains(ProcessTypeEnum.PAY.ToString()))
-                                {
-                                    outgoingCash = outgoingCash + data.TLTotalAmount;
-                                    var price = outgoingCash;
-                                    @price
-                                }
-                            </td>
+                            <td rowspan="2" style="border-left: 1pt solid #e0e0e0ff;">@(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(data.SalesType))</td>
+                            <td style="@bottomGrayColor"> @data.IngoingCash</td>
+                            <td style="@bottomGrayColor">@data.OutgoingCash</td>
                         </tr>
                         <tr>
-                            <td colspan="2" style="@bottomGrayColor text-align:center; @(ingoingCash - outgoingCash < 0 ? "color:red" : "color:green")">
+                            <td colspan="2" style="@bottomGrayColor text-align:center; @(data.IngoingCash - data.OutgoingCash < 0 ? "color:red" : "color:green")">
                                 @{
-                                    var totalAmount = ingoingCash - outgoingCash;
+                                    var totalAmount = data.IngoingCash - data.OutgoingCash;
                                     @totalAmount
                                 }
                             </td>
@@ -122,8 +96,9 @@
                     <td>
                         @if (data.SalesType.Contains("CASH"))
                         {
-                            @(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(EnumHelper<PurchaseTypeEnum>.Parse(data.SalesType)))
-                            <text>&nbsp; </text> @($"({data.Currency})");
+                            @(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(data.SalesType))
+                            <text>&nbsp; </text> @($"({data.Currency})")
+                            ;
                         }
                     </td>
                     <td>
@@ -152,17 +127,40 @@
 @code {
     private bool isBusy = false;
     decimal TLMovement = 0;
-    decimal ingoingCash = 0;
-    decimal outgoingCash = 0;
 
     private string bottomGrayColor = "border-bottom: 1pt solid #e0e0e0ff; border-right: 1pt solid #e0e0e0ff;";
 
     private List<CaseModel> datas = new();
+    private List<Summary> summaryList = new();
 
     protected override async Task OnInitializedAsync()
     {
         isBusy = true;
         await GetCase();
+        for (int i = 0; i < datas.Count; i++)
+        {
+            int index = i;
+            var data = datas.ElementAt(index);
+
+            if (summaryList.Any(s => s.SalesType == data.SalesType))
+            {
+                var summaryData = summaryList.FirstOrDefault(s => s.SalesType == data.SalesType);
+                if (data.ProcessType == ProcessTypeEnum.COLLECT.ToString())
+                    summaryData.IngoingCash += data.TLTotalAmount;
+                else
+                    summaryData.OutgoingCash += data.TLTotalAmount;
+            }
+            else
+            {
+                summaryList.Add(new Summary()
+                    {
+                        IngoingCash = data.ProcessType == ProcessTypeEnum.COLLECT.ToString() ? data.TLTotalAmount : 0,
+                        OutgoingCash = data.ProcessType == ProcessTypeEnum.PAY.ToString() ? data.TLTotalAmount : 0,
+                        SalesType = data.SalesType
+                    });
+            }
+        }
+
         isBusy = false;
     }
 
@@ -184,5 +182,12 @@
         {
             await GetCase();
         }
+    }
+
+    private class Summary()
+    {
+        internal decimal IngoingCash { get; set; }
+        internal decimal OutgoingCash { get; set; }
+        internal string SalesType { get; set; }
     }
 }

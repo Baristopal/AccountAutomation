@@ -34,23 +34,35 @@ public class DataManager : IDataService
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<DataModel>>(new List<DataModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>([], false, ex.Message);
         }
     }
 
     public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllData()
     {
-        FinanceTrackingSearchDto searchDto = new FinanceTrackingSearchDto();
-
         try
         {
-            var result = await _dataDal.GetAll(searchDto, _companyId);
+            var result = await _dataDal.GetAll(_companyId);
             return new BaseResponse<IEnumerable<DataModel>>(result, true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "{message}", ex.Message);
-            return new BaseResponse<IEnumerable<DataModel>>(new List<DataModel>(), false, ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>([], false, ex.Message);
+        }
+    }
+
+    public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllForInstant()
+    {
+        try
+        {
+            var result = await _dataDal.GetAllForInstant(_companyId);
+            return new BaseResponse<IEnumerable<DataModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>([], false, ex.Message);
         }
     }
 
@@ -116,6 +128,20 @@ public class DataManager : IDataService
         try
         {
             var result = await _dataDal.GetAllDataWithStockExpenses(_companyId);
+            return new BaseResponse<IEnumerable<DataModel>>(result, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "{message}", ex.Message);
+            return new BaseResponse<IEnumerable<DataModel>>([], false, ex.Message);
+        }
+    }
+
+    public async Task<BaseResponse<IEnumerable<DataModel>>> GetAllNotPaidInvoices(int instantId)
+    {
+        try
+        {
+            var result = await _dataDal.GetAllNotPaidInvoices(_companyId, instantId);
             return new BaseResponse<IEnumerable<DataModel>>(result, true);
         }
         catch (Exception ex)

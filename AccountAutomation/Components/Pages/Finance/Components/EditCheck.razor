@@ -73,12 +73,22 @@
     {
         if (isNew)
         {
-            await checkService.AddCheck(Check);
+            var result = await checkService.AddCheck(Check);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage(result.Message,Severity.Error);
+                return;
+            }
             messageboxHelper.ShowSnackMessage("Çek başarıyla eklendi.");
-        }   
+        }
         else
         {
-            await checkService.UpdateCheck(Check);
+            var result = await checkService.UpdateCheck(Check);
+            if (result.Success == false)
+            {
+                messageboxHelper.ShowSnackMessage(result.Message,Severity.Error);
+                return;
+            }
             messageboxHelper.ShowSnackMessage("Çek başarıyla güncellendi.");
         }
 

@@ -54,7 +54,7 @@
                         int index = i;
                         <tr>
                             <td>
-                                @(EnumHelper<ProcessTypeEnum>.GetDisplayValue(EnumHelper<ProcessTypeEnum>.Parse(datas[index].ProcessType)))
+                                @(EnumHelper<ProcessTypeEnum>.GetDisplayValue(datas[index].ProcessType))
                             </td>
                             <td>@datas[index].ProcessDate?.ToShortDateString()</td>
                             <td>
