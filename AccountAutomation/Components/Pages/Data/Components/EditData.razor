@@ -1,5 +1,7 @@
-﻿@using Entities.Models
+﻿@using CleaveMudDateMask.Component
+@using Entities.Models
 @using WebUI.Components.Pages.Defination.Components
+@using System.Xml
 @inject IInstantService instantService
 @inject IDefinationService definationService
 @inject IDataService dataService
@@ -12,7 +14,6 @@
     <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
 </MudOverlay>
 
-
 <MudDialog Style="max-height: 90vh;">
     <DialogContent>
         <MudGrid Class="d-flex justify-end">
@@ -22,7 +23,6 @@
             </MudItem>
         </MudGrid>
         <MudGrid>
-
             <MudItem xs="6">
                 <MudAutocomplete T="string"
                                  Label="İşlem Tipi"
@@ -60,15 +60,15 @@
                                  Value="@(EnumHelper<PurchaseTypeEnum>.GetDisplayValue(data?.SalesType))"
                                  ValueChanged="OnPurchaseTypeSelect"
                                  AdornmentIcon="@(data.SalesType == PurchaseTypeEnum.CHECK.ToString() ? Icons.Material.Filled.Add : "")"
-                                 OnAdornmentClick="AddCheck" />
+                                 OnAdornmentClick="@(data.SalesType == PurchaseTypeEnum.CHECK.ToString() ? AddCheck : null)" />
             </MudItem>
             <MudItem xs="6">
-                <MudDatePicker Label="Tarih" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="data.ProcessDate" Margin="Margin.Dense"></MudDatePicker>
+                <MudDateField id="processDate" idp="processDate" Label="Tarih" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" DateFormat="dd.MM.yyyy" @bind-Date="data.ProcessDate" Margin="Margin.Dense"></MudDateField>
             </MudItem>
             @if (data.ProcessType != ProcessTypeEnum.COLLECT.ToString() && data.ProcessType != ProcessTypeEnum.PAY.ToString())
             {
                 <MudItem xs="6">
-                    <MudDatePicker Label="Vade Tarihi" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="data.MaturityDate" Margin="Margin.Dense"></MudDatePicker>
+                    <MudDateField id="maturityDate" idp="maturityDate" Label="Vade Tarihi" Variant="Variant.Outlined" ErrorText="Deneme" Editable="true" DateFormat="dd.MM.yyyy" @bind-Date="data.MaturityDate" Margin="Margin.Dense"></MudDateField>
                 </MudItem>
             }
             @if (data.ProcessType != ProcessTypeEnum.COLLECT.ToString() && data.ProcessType != ProcessTypeEnum.PAY.ToString())
@@ -194,9 +194,9 @@
                                          ResetValueOnEmptyText=true
                                          SearchFunc="SearchUnitTypeFunc"
                                          CoerceValue=true
+                                         Value="@(EnumHelper<UnitEnum>.GetDisplayValue(dataEntry?.Unit))"
                                          Variant="Variant.Outlined"
-                                         ValueChanged="@(s=>AddOrUpdateUnit(s,index))"
-                                         Value="dataEntry?.Unit" />
+                                         ValueChanged="@(s=>AddOrUpdateUnit(s,index))" />
                     </MudItem>
                     <MudItem xs="6">
                         <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="KDV Tutarı" Margin="Margin.Dense" Value="dataEntry.TaxAmount" ValueChanged="@(s=> AddOrUpdateTaxAmount(s,index))"></MudNumericField>
@@ -218,18 +218,15 @@
                                          ValueChanged="@(s=>AddOrUpdateCurrency(s,index))"
                                          Value="dataEntry?.Currency" />
                     </MudItem>
-                    @if (dataEntry.Currency != CurrencyEnum.TL.ToString())
-                    {
-                        <MudItem xs="@(dataEntry.Currency != CurrencyEnum.TL.ToString() && dataEntry.Currency !=null ? 12 : 6)">
-                            <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="Döviz İşlem Toplamı" Margin="Margin.Dense" Value="dataEntry.CurrencyTotalAmount" ValueChanged="@(s=>AddOrUpdateCurrencyTotalAmount(s,index))"></MudNumericField>
-                        </MudItem>
-                    }
-                    @if (dataEntry.Currency == null || dataEntry.Currency == CurrencyEnum.TL.ToString())
-                    {
-                        <MudItem xs="@(dataEntry.Currency == CurrencyEnum.TL.ToString() ? 12 : 6)">
-                            <MudNumericField T="decimal" Variant="Variant.Outlined" @ref="TLTotalAmountField" HideSpinButtons=true Label="TL İşlem Toplamı" Margin="Margin.Dense" Value="dataEntry.TLTotalAmount" ValueChanged="@(s=>AddOrUpdateTLTotalAmount(s,index))"></MudNumericField>
-                        </MudItem>
-                    }
+
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal" Variant="Variant.Outlined" HideSpinButtons=true Label="Döviz İşlem Toplamı" Margin="Margin.Dense" Value="dataEntry.CurrencyTotalAmount" ValueChanged="@(s=>AddOrUpdateCurrencyTotalAmount(s,index))"></MudNumericField>
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <MudNumericField T="decimal" Variant="Variant.Outlined" @ref="TLTotalAmountField" HideSpinButtons=true Label="TL İşlem Toplamı" Margin="Margin.Dense" Value="dataEntry.TLTotalAmount" ValueChanged="@(s=>AddOrUpdateTLTotalAmount(s,index))"></MudNumericField>
+                    </MudItem>
+
                 </MudGrid>
             }
 
@@ -271,6 +268,7 @@
     private Dictionary<string, string> purchaseTypes = EnumHelper<PurchaseTypeEnum>.GetNamesAndDisplayNames(typeof(PurchaseTypeEnum));
     private Dictionary<string, string> unitTypes = EnumHelper<UnitEnum>.GetNamesAndDisplayNames(typeof(UnitEnum));
 
+
     private void Cancel() => MudDialog.Cancel();
 
     protected override async Task OnInitializedAsync()
@@ -292,7 +290,16 @@
         instants = (await instantService.GetAllInstant()).Data.ToList();
         expenseTypes = (await definationService.GetAll<ExpenseTypeModel>()).Data.ToList();
 
+        string url = "https://www.tcmb.gov.tr/kurlar/today.xml";
 
+        var exchanges = new XmlTextReader("https://www.tcmb.gov.tr/kurlar/today.xml");
+        XmlDocument xmlDocument = new XmlDocument();
+        xmlDocument.Load(url);
+        var dollar = xmlDocument.SelectSingleNode("/Tarih_Date/Currency[CurrencyName='US DOLLAR']").ChildNodes[3].InnerText;
+        var euro = xmlDocument.SelectSingleNode("/Tarih_Date/Currency[CurrencyName='EURO']").ChildNodes[4].InnerText;
+
+        data.EURExchange = Convert.ToDecimal(euro.Replace(".", ","));
+        data.USDExchange = Convert.ToDecimal(dollar.Replace(".", ","));
         isBusy = false;
     }
 
@@ -472,6 +479,7 @@
         if (dataEntry.Currency == CurrencyEnum.USD.ToString())
         {
             var amount = dataEntry.CurrencyTotalAmount * data.USDExchange;
+            amount = Math.Round(amount, 2);
             AddOrUpdateTLTotalAmount(amount, index);
             TLTotalAmountField.Value = amount;
             TLTotalAmountField.Text = amount.ToString();
@@ -479,6 +487,7 @@
         else if (dataEntry.Currency == CurrencyEnum.EUR.ToString())
         {
             var amount = dataEntry.CurrencyTotalAmount * data.EURExchange;
+            amount = Math.Round(amount, 2);
             AddOrUpdateTLTotalAmount(amount, index);
             TLTotalAmountField.Value = amount;
             TLTotalAmountField.Text = amount.ToString();
@@ -530,6 +539,19 @@
 
     private void OnPurchaseTypeSelect(string purchaseType)
     {
+        switch (purchaseType)
+        {
+            case "TL Nakit":
+                AddOrUpdateCurrency(CurrencyEnum.TL.ToString(), 0);
+                break;
+            case "USD Nakit":
+                AddOrUpdateCurrency(CurrencyEnum.USD.ToString(), 0);
+                break;
+            case "EUR Nakit":
+                AddOrUpdateCurrency(CurrencyEnum.EUR.ToString(), 0);
+                break;
+        }
+
         if (string.IsNullOrEmpty(purchaseType) == false)
         {
             data.SalesType = purchaseTypes.SingleOrDefault(s => s.Value == purchaseType).Key;

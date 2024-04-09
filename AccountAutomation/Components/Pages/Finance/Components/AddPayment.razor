@@ -1,4 +1,6 @@
-﻿@inject MessageboxHelper messageBoxHelper
+﻿@using System.Xml
+
+@inject MessageboxHelper messageBoxHelper
 @inject IInstantService instantService
 @inject IDataService dataService
 
@@ -12,6 +14,9 @@
 <MudDialog Style="max-height: 90vh;">
     <DialogContent>
         <MudGrid Class="d-flex justify-end">
+            <MudItem xs="6">
+                <MudTextField T="string" Variant="Variant.Outlined" Label="Sipariş Numarası" Margin="Margin.Dense" @bind-Value="data.OrderNumber"></MudTextField>
+            </MudItem>
             <MudItem xs="6" Class="d-flex">
                 <MudNumericField T="decimal" Variant="Variant.Outlined" Label="USD Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.USDExchange"></MudNumericField>
                 <MudNumericField T="decimal" Variant="Variant.Outlined" Label="EURO Kur" HideSpinButtons=true Margin="Margin.Dense" @bind-Value="data.EURExchange"></MudNumericField>
@@ -244,6 +249,16 @@
         isBusy = true;
         instants = (await instantService.GetAllInstant()).Data.ToList();
         processTypes = processTypes.Where(s => s.Key == ProcessTypeEnum.PAY.ToString() || s.Key == ProcessTypeEnum.COLLECT.ToString()).ToDictionary();
+
+        string url = "https://www.tcmb.gov.tr/kurlar/today.xml";
+
+        XmlDocument xmlDocument = new XmlDocument();
+        xmlDocument.Load(url);
+        var dollar = xmlDocument.SelectSingleNode("/Tarih_Date/Currency[CurrencyName='US DOLLAR']").ChildNodes[3].InnerText;
+        var euro = xmlDocument.SelectSingleNode("/Tarih_Date/Currency[CurrencyName='EURO']").ChildNodes[4].InnerText;
+
+        data.EURExchange = Convert.ToDecimal(euro.Replace(".", ","));
+        data.USDExchange = Convert.ToDecimal(dollar.Replace(".", ","));
         isBusy = false;
     }
 
@@ -276,6 +291,19 @@
 
     private void OnPurchaseTypeSelect(string purchaseType)
     {
+        switch (purchaseType)
+        {
+            case "TL Nakit":
+            data.Currency = CurrencyEnum.TL.ToString();
+            break;
+            case "USD Nakit":
+            data.Currency = CurrencyEnum.USD.ToString();
+            break;
+            case "EUR Nakit":
+            data.Currency = CurrencyEnum.EUR.ToString();
+            break;
+        }
+
         if (string.IsNullOrEmpty(purchaseType) == false)
         {
             data.SalesType = purchaseTypes.SingleOrDefault(s => s.Value == purchaseType).Key;
@@ -335,10 +363,9 @@
         data.CurrencyTotalAmount = amount;
 
         if (data.Currency == CurrencyEnum.USD.ToString() && data.USDExchange > 0)
-            data.TLTotalAmount = data.CurrencyTotalAmount * data.USDExchange;
+        data.TLTotalAmount = Math.Round(data.TLTotalAmount = data.CurrencyTotalAmount * data.USDExchange, 2);
         if (data.Currency == CurrencyEnum.EUR.ToString() && data.EURExchange > 0)
-            data.TLTotalAmount = data.CurrencyTotalAmount * data.EURExchange;
-
+        data.TLTotalAmount = Math.Round(data.TLTotalAmount = data.CurrencyTotalAmount * data.EURExchange, 2);
 
         numericField.Value = data.TLTotalAmount;
         numericField.Text = data.TLTotalAmount.ToString();

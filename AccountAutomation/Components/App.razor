@@ -25,6 +25,4 @@
     private HttpContext HttpContext { get; set; } = default!;
 
     private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Auth") ? null : new InteractiveServerRenderMode(prerender:true);
-    // private IComponentRenderMode? RenderModeForPage => HttpContext.Request.Path.StartsWithSegments("/Auth") ? null : InteractiveServer;
-    // private IComponentRenderMode? RenderModeForPage =>HttpContext.GetEndpoint()?.Metadata.GetMetadata<RenderModeAttribute>()?.Mode;
 }

@@ -1,0 +1,25 @@
+﻿@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+<MudMenu Dense="true" Class="mt-1 ml-4" AnchorOrigin="Origin.BottomCenter" >
+    <ActivatorContent>
+        <MudAvatar>
+            <MudImage Src="/img/user-logo.jpg" Alt="User image" />
+        </MudAvatar>
+    </ActivatorContent>
+    <ChildContent>
+        <MudListItem Text="Çıkış" OnClick="SignOut" Icon="@Icons.Material.Outlined.Login" />
+    </ChildContent>
+</MudMenu>
+
+<script src="scripts/deleteCookie.js"></script>
+
+@code {
+
+    private async Task SignOut()
+    {
+        await JSRuntime.InvokeVoidAsync("deleteCookie", "authCookie");
+        NavigationManager.Refresh();
+    }
+}

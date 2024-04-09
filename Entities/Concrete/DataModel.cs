@@ -26,5 +26,6 @@ public class DataModel : BaseEntity, IEntity
     public decimal TLTotalAmount { get; set; } // TL Toplam Tutar
     public decimal PaidAmount { get; set; }
     public string Status { get; set; }
+    public string OrderNumber { get; set; }
 
 }

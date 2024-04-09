@@ -74,11 +74,13 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
+        options.Cookie.Name = "authCookie";
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
         options.ExpireTimeSpan = TimeSpan.FromHours(2);
         options.SlidingExpiration = true;
         options.ReturnUrlParameter = "returnUrl";
+        options.Cookie.HttpOnly = false;
     });
 
 

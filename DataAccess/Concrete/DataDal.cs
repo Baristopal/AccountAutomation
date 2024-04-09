@@ -37,7 +37,7 @@ public class DataDal : IDataDal
 
     public async Task<IEnumerable<DataModel>> GetAll(int companyId)
     {
-        string query = "SELECT * FROM Data WITH(NOLOCK) WHERE IsDeleted = 0 AND CompanyId=@CompanyId AND ExpenseType is not null ORDER BY CreatedDate";
+        string query = "SELECT * FROM Data WITH(NOLOCK) WHERE IsDeleted = 0 AND CompanyId=@CompanyId ORDER BY CreatedDate";
         var p = new
         {
             CompanyId = companyId
